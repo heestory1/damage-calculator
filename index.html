@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>토리펀 (메이플키우기 최종데미지 계산기)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 16px;
+      background: #f0f2f5; color: #222;
+    }
+    .container {
+      max-width: 980px; margin: 0 auto; background: #fff;
+      border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      padding: 16px 16px 20px;
+    }
+    .header {
+      display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px;
+    }
+    .app-title {
+      font-size: 1.8rem; font-weight: 800; text-align: center;
+      letter-spacing: -0.5px;
+    }
+    .sub-title {
+      font-size: 1rem; text-align: center; color: #555;
+    }
+    .maker {
+      text-align: right; font-size: 0.8rem; color: #666; font-weight: 600;
+    }
+    .note {
+      font-size: 0.8rem; color: #444; margin-top: 6px; line-height: 1.55;
+      background: #f7f9ff; border: 1px solid #e1e6ff;
+      padding: 8px 10px; border-radius: 8px;
+    }
+    .note b { font-weight: 600; }
+    table {
+      border-collapse: collapse; width: 100%; font-size: 0.85rem;
+      margin-top: 6px; border-radius: 8px; overflow: hidden;
+    }
+    th, td { border: 1px solid #e1e4ea; padding: 4px 6px; text-align: center; }
+    th { background: #f7f8fb; font-weight: 600; }
+    tbody tr:nth-child(odd) { background: #fafbff; }
+    input[type="number"], input[type="text"], select {
+      padding: 3px 4px; font-size: 0.82rem; border-radius: 6px;
+      border: 1px solid #ccd2dd; background: #fff;
+    }
+    input[type="number"] { width: 90px; text-align: right; }
+    input[type="text"] { min-width: 140px; }
+    select { min-width: 160px; }
+    input:focus, select:focus {
+      outline: none; border-color: #4f8df5;
+      box-shadow: 0 0 0 1px rgba(79,141,245,0.25);
+    }
+    .section { margin-top: 12px; }
+    .btn-row { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+    button {
+      padding: 6px 14px; font-size: 0.85rem; border-radius: 999px;
+      border: 1px solid #4f8df5; background:#4f8df5; color:#fff;
+      cursor:pointer;
+    }
+    button.secondary { background:#fff; color:#4f8df5; }
+    button.danger { border-color:#d00000; color:#d00000; background:#fff; }
+    .positive { color:#d00000; font-weight:600; }
+    .negative { color:#0040d0; font-weight:600; }
+    .delta-positive { color:#d00000; }
+    .delta-negative { color:#0040d0; }
+    .result-box {
+      margin-top: 10px; padding: 10px; border-radius: 10px;
+      background:#f7f8fb; border:1px solid #e1e4ea;
+    }
+    .second-title { font-size:1.05rem; margin:10px 0 4px; font-weight:700; }
+    .eff-best { font-weight:700; }
+    @media (max-width:640px) {
+      .app-title { font-size:1.5rem; }
+      input[type="number"] { width:80px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="app-title">토리펀 <span class="sub-title">(메이플키우기 최종데미지 계산기)</span></div>
+    <div class="maker">스카니아9 히수토리</div>
+  </div>
+
+  <div class="note">
+    · 모든 % 수치는 <b>그대로</b> 입력합니다. 예) 크리티컬 데미지 172.3% → <b>172.3</b>, 스킬데미지 58% → <b>58</b><br>
+    · 아래 <b>“증가/감소”</b> 칸에 <b>+ / −</b> 값만 넣으면 신규 수치와 최종 데미지가 자동 계산됩니다.<br>
+    · 예: 크확이 <b>0.7% 증가</b>라면 <b>+0.7</b>, 크뎀이 <b>5.5% 감소</b>라면 <b>-5.5</b> 입력<br>
+    · <b>스탯비례 데미지</b>는 주스탯 % 증가량에 따라 달라지므로, 착용 전/후 값을 계산해 증감만 직접 입력하세요.<br>
+      &nbsp;&nbsp;예시: 착용 전 400% / 착용 후 300% → <b>-100</b>
+  </div>
+
+  <div class="section">
+    <div class="second-title">능력치 입력</div>
+    <table>
+      <thead><tr><th>항목</th><th>기존</th><th>증가/감소</th><th>신규</th></tr></thead>
+      <tbody id="stats-rows"></tbody>
+    </table>
+    <div class="btn-row">
+      <button onclick="calculate()">계산하기</button>
+      <button class="secondary" onclick="resetValues()">초기화</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="second-title">결과</div>
+    <div class="result-box">
+      <div>기존 최종데미지: <span id="oldDamage">-</span></div>
+      <div>신규 최종데미지: <span id="newDamage">-</span></div>
+      <div>증감률: <span id="diffPercent">-</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="second-title">스탯 효율 분석</div>
+    <table>
+      <thead><tr><th>항목</th><th>기준 증가량</th><th>증가율</th><th>정규화 효율</th></tr></thead>
+      <tbody id="eff-rows"></tbody>
+    </table>
+    <div class="btn-row">
+      <button onclick="analyzeEfficiency()">효율 계산</button>
+    </div>
+    <div id="eff-summary" class="note" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<script>
+const stats=[
+{key:"atk",label:"공격력",isPercent:false},
+{key:"cr",label:"크확",isPercent:true},
+{key:"cd",label:"크뎀",isPercent:true},
+{key:"stat",label:"스탯비례",isPercent:true},
+{key:"dmg",label:"데미지",isPercent:true},
+{key:"amp",label:"데증",isPercent:true},
+{key:"skill",label:"스킬데미지",isPercent:true},
+{key:"boss",label:"보스/일반",isPercent:true},
+{key:"min",label:"최소",isPercent:true},
+{key:"max",label:"최대",isPercent:true},
+{key:"final",label:"최종",isPercent:true},
+];
+
+function createRows(){
+const tbody=document.getElementById("stats-rows");
+stats.forEach(s=>{
+const tr=document.createElement("tr");
+tr.innerHTML=
+`<td>${s.label}</td>
+ <td><input id="old_${s.key}" type="number"></td>
+ <td><input id="delta_${s.key}" type="number" oninput="sync('${s.key}')"></td>
+ <td><input id="new_${s.key}" type="number" readonly></td>`;
+tbody.appendChild(tr);
+});
+}
+
+function sync(k){
+const o=parseFloat(document.getElementById("old_"+k).value)||0;
+const d=parseFloat(document.getElementById("delta_"+k).value)||0;
+const n=o+d;
+document.getElementById("new_"+k).value=n.toFixed(3);
+const el=document.getElementById("delta_"+k);
+el.className=d>0?"delta-positive":d<0?"delta-negative":"";
+}
+
+function val(id){return parseFloat(document.getElementById(id).value)||0;}
+
+function calc(set){
+const atk=set.atk;
+const cr=set.cr/100;
+const cd=set.cd/100;
+return atk
+*(1+set.stat/100)
+*(1+set.dmg/100)
+*(1+set.amp/100)
+*(1+set.boss/100)
+*((set.min+set.max)/200)
+*(1+set.skill/100)
+*(cr*cd+(1-cr))
+*(1+set.final/100);
+}
+
+function calculate(){
+let o={},n={};
+stats.forEach(s=>{
+o[s.key]=val("old_"+s.key);
+n[s.key]=val("new_"+s.key);
+});
+const od=calc(o), nd=calc(n);
+document.getElementById("oldDamage").innerText=od.toFixed(2);
+document.getElementById("newDamage").innerText=nd.toFixed(2);
+let diff=(nd/od-1)*100;
+const el=document.getElementById("diffPercent");
+el.innerText=isFinite(diff)?diff.toFixed(2)+" %":"-";
+el.className=diff>0?"positive":diff<0?"negative":"";
+}
+
+function resetValues(){
+stats.forEach(s=>{
+["old_","delta_","new_"].forEach(p=>document.getElementById(p+s.key).value="");
+});
+document.getElementById("oldDamage").innerText="-";
+document.getElementById("newDamage").innerText="-";
+document.getElementById("diffPercent").innerText="-";
+document.getElementById("eff-summary").innerHTML="";
+stats.forEach(s=>{
+document.getElementById("eff_delta_"+s.key).innerText="-";
+document.getElementById("eff_norm_"+s.key).innerText="-";
+});
+}
+
+function createEff(){
+const tbody=document.getElementById("eff-rows");
+stats.forEach(s=>{
+const tr=document.createElement("tr");
+tr.innerHTML=`
+<td>${s.label}</td>
+<td><input id="step_${s.key}" type="number" value="${s.key=="atk"?1000:1}"></td>
+<td id="eff_delta_${s.key}">-</td>
+<td id="eff_norm_${s.key}">-</td>`;
+tbody.appendChild(tr);
+});
+}
+
+function getBase(){
+let b={};
+stats.forEach(s=>{
+b[s.key]=parseFloat(document.getElementById("new_"+s.key).value)||parseFloat(document.getElementById("old_"+s.key).value)||0;
+});
+return b;
+}
+
+function analyzeEfficiency(){
+const base=getBase();
+const baseD=calc(base);
+let rank=[];
+stats.forEach(s=>{
+let step=parseFloat(document.getElementById("step_"+s.key).value)||0;
+if(step<=0)return;
+let test=Object.assign({},base);
+test[s.key]+=step;
+let newD=calc(test);
+let gain=(newD/baseD-1)*100;
+let norm = s.key=="atk" ? gain/(step/1000) : gain/step;
+document.getElementById("eff_delta_"+s.key).innerText=gain.toFixed(3)+" %";
+document.getElementById("eff_norm_"+s.key).innerText=norm.toFixed(3);
+rank.push({label:s.label,val:norm});
+});
+rank.sort((a,b)=>b.val-a.val);
+let out="효율 순위<br>";
+rank.forEach((r,i)=>{
+out+=`${i+1}위: ${r.label} (${r.val.toFixed(3)})<br>`;
+});
+document.getElementById("eff-summary").innerHTML=out;
+}
+
+createRows();
+createEff();
+</script>
+</body>
+</html>
