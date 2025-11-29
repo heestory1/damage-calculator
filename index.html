@@ -231,8 +231,9 @@ tbody.appendChild(tr);
 function getBase(){
 let b={};
 stats.forEach(s=>{
-b[s.key]=parseFloat(document.getElementById("new_"+s.key).value)||parseFloat(document.getElementById("old_"+s.key).value)||0;
+b[s.key]=parseFloat(document.getElementById("new_"+s.key).value)||parseFloat(document.getElementById("old_"+s.key).value)||1;
 });
+  b[s.key]=v;
 return b;
 }
 
