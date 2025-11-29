@@ -149,4 +149,578 @@
       font-size: 0.82rem;
       border-radius: 999px;
       border: 1px solid transparent;
-      background: linear-gradient(135deg
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: #ffffff;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+      transition: transform 0.06s ease, box-shadow 0.12s ease, filter 0.08s ease;
+    }
+    button.secondary {
+      background: #ffffff;
+      color: #1d4ed8;
+      border-color: #cbd5f5;
+      box-shadow: 0 4px 10px rgba(148, 163, 184, 0.25);
+    }
+    button.danger {
+      background: #ffffff;
+      color: #b91c1c;
+      border-color: #fecaca;
+      box-shadow: 0 4px 10px rgba(248, 113, 113, 0.25);
+    }
+    button:hover {
+      filter: brightness(1.03);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+      transform: translateY(-1px);
+    }
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.24);
+    }
+
+    .result-box {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+    }
+    .result-item-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+    .result-item-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .positive { color: #dc2626; font-weight: 700; }
+    .negative { color: #2563eb; font-weight: 700; }
+
+    /* 증감 입력 색상 (플러스=빨강, 마이너스=파랑) */
+    .delta-positive { color: #dc2626; font-weight: 600; }
+    .delta-negative { color: #2563eb; font-weight: 600; }
+
+    .eff-note {
+      font-size: 0.78rem;
+      color: #475569;
+      margin-top: 4px;
+    }
+    .eff-best {
+      font-weight: 700;
+      color: #1d4ed8;
+    }
+    #eff-summary {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px dashed #cbd5e1;
+      font-size: 0.8rem;
+      color: #334155;
+      display: none;
+    }
+
+    #saveName {
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 10px; }
+      .card { padding: 12px 12px 16px; }
+      .app-title { font-size: 1.5rem; }
+      input[type="number"] { width: 70px; }
+      th, td { font-size: 0.78rem; padding: 3px 2px; }
+      .result-box { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="card">
+      <div class="header">
+        <div class="app-title-row">
+          <div>
+            <div class="app-title">토리펀</div>
+            <div class="app-subtitle">메이플키우기 최종 데미지 비교 · 스탯 효율 분석</div>
+          </div>
+          <div class="maker">스카니아9 히수토리</div>
+        </div>
+      </div>
+
+      <div class="note">
+        · 모든 % 수치는 그대로 입력합니다. 예) 크리티컬 데미지 172.3% → <b>172.3</b>, 스킬데미지 58% → <b>58</b><br>
+        · <b>증가/감소</b> 칸에는 <b>+ / − 변화량</b>만 입력합니다. 예) 크확 +0.7% → <b>+0.7</b>, 크뎀 -5.5% → <b>-5.5</b><br>
+        · 증감을 비워두면 <b>신규 수치 = 기존 수치</b>로 자동 복사됩니다.<br>
+        · <b>스탯비례 데미지</b>는 주스탯 % 증가량에 따라 달라지므로, 착용 전/후 스탯비례%를 직접 계산하여 증감만 넣어 주세요.<br>
+        &nbsp;&nbsp;예시: 착용 전 400% / 착용 후 300% → 증감 칸에 <b>-100</b> 입력
+      </div>
+
+      <!-- 저장 / 불러오기 -->
+      <div class="section">
+        <div class="section-title">세팅 저장 / 불러오기</div>
+        <div class="btn-row">
+          <input id="saveName" type="text" placeholder="세이브 이름 (예: 주 보스 세팅)" style="flex:1; min-width:140px;">
+          <button type="button" onclick="saveData()">저장</button>
+          <button type="button" class="secondary" onclick="loadData()">불러오기</button>
+          <button type="button" class="danger" onclick="deleteData()">삭제</button>
+        </div>
+      </div>
+
+      <!-- 능력치 입력 -->
+      <div class="section">
+        <div class="section-title">능력치 입력</div>
+        <table>
+          <thead>
+            <tr>
+              <th>항목</th>
+              <th>기존 수치</th>
+              <th>증가/감소</th>
+              <th>신규 수치 (자동)</th>
+            </tr>
+          </thead>
+          <tbody id="stats-rows"></tbody>
+        </table>
+        <div class="btn-row">
+          <button type="button" onclick="calculate()">최종 데미지 계산 + 효율 분석</button>
+          <button type="button" class="secondary" onclick="resetValues()">전체 초기화</button>
+        </div>
+      </div>
+
+      <!-- 결과 -->
+      <div class="section">
+        <div class="section-title">결과</div>
+        <div class="result-box">
+          <div>
+            <div class="result-item-label">기존 최종 데미지</div>
+            <div class="result-item-value" id="oldDamage">-</div>
+          </div>
+          <div>
+            <div class="result-item-label">신규 최종 데미지</div>
+            <div class="result-item-value" id="newDamage">-</div>
+          </div>
+          <div>
+            <div class="result-item-label">증감률 (신규 / 기존 - 1)</div>
+            <div class="result-item-value" id="diffPercent">-</div>
+          </div>
+          <div>
+            <div class="result-item-label">기준 증가 적용 후 데미지<br><span style="font-size:0.72rem;color:#6b7280;">(아래 기준 증가량 그대로 적용)</span></div>
+            <div class="result-item-value" id="boostDamage">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 효율 분석 -->
+      <div class="section">
+        <div class="section-title">스탯 효율 분석</div>
+        <div class="eff-note">
+          · 효율 계산은 <b>현재 입력된 능력치</b> 기준입니다. 신규 수치가 있으면 그걸, 없으면 기존 수치를 사용합니다.<br>
+          · 기본 기준은 모든 %스탯 <b>+1%</b>, 공격력은 <b>+1000</b>입니다. 아래에서 항목별 기준 증가량을 마음대로 바꿀 수 있습니다.
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>항목</th>
+              <th>기준 증가량<br><span style="font-size:0.75rem;color:#6b7280;">(% 또는 공격력)</span></th>
+              <th>데미지 증가율<br><span style="font-size:0.75rem;color:#6b7280;">(해당 증가량 전체 기준)</span></th>
+              <th>정규화 효율<br><span style="font-size:0.75rem;color:#6b7280;">공격력: 1000당 / 나머지: 1%당</span></th>
+            </tr>
+          </thead>
+          <tbody id="eff-rows"></tbody>
+        </table>
+        <div class="btn-row">
+          <button type="button" class="secondary" onclick="analyzeEfficiency(false)">효율만 다시 계산</button>
+        </div>
+        <div id="eff-summary"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 스탯 목록 정의
+    const stats = [
+      { key: "atk",   label: "공격력" },
+      { key: "cr",    label: "크리티컬 확률(%)" },
+      { key: "cd",    label: "크리티컬 데미지(%)" },
+      { key: "stat",  label: "스탯비례 데미지(%)" },
+      { key: "dmg",   label: "데미지(%)" },
+      { key: "amp",   label: "데미지 증폭(%)" },
+      { key: "skill", label: "스킬 데미지(%)" },
+      { key: "boss",  label: "보스/일반 데미지(%)" },
+      { key: "min",   label: "최소 데미지(%)" },
+      { key: "max",   label: "최대 데미지(%)" },
+      { key: "final", label: "최종 데미지(%)" },
+    ];
+
+    // 테이블 행 생성
+    function createStatRows() {
+      const tbody = document.getElementById("stats-rows");
+      stats.forEach(s => {
+        const tr = document.createElement("tr");
+
+        const tdLabel = document.createElement("td");
+        tdLabel.textContent = s.label;
+        tr.appendChild(tdLabel);
+
+        const tdOld = document.createElement("td");
+        const inputOld = document.createElement("input");
+        inputOld.type = "number";
+        inputOld.id = "old_" + s.key;
+        inputOld.step = "0.01";
+        inputOld.addEventListener("input", () => syncFromOld(s.key));
+        tdOld.appendChild(inputOld);
+        tr.appendChild(tdOld);
+
+        const tdDelta = document.createElement("td");
+        const inputDelta = document.createElement("input");
+        inputDelta.type = "number";
+        inputDelta.id = "delta_" + s.key;
+        inputDelta.step = "0.01";
+        inputDelta.addEventListener("input", () => {
+          updateNewFromDelta(s.key);
+          colorDelta(inputDelta);
+        });
+        tdDelta.appendChild(inputDelta);
+        tr.appendChild(tdDelta);
+
+        const tdNew = document.createElement("td");
+        const inputNew = document.createElement("input");
+        inputNew.type = "number";
+        inputNew.id = "new_" + s.key;
+        inputNew.step = "0.01";
+        inputNew.readOnly = true;
+        inputNew.style.background = "#f9fafb";
+        tdNew.appendChild(inputNew);
+        tr.appendChild(tdNew);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 효율 테이블 행 생성
+    function createEffRows() {
+      const tbody = document.getElementById("eff-rows");
+      stats.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.label}</td>
+          <td><input id="step_${s.key}" type="number" step="0.01" value="${s.key === "atk" ? 1000 : 1}"></td>
+          <td id="eff_delta_${s.key}">-</td>
+          <td id="eff_norm_${s.key}">-</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 숫자 파싱
+    function num(id) {
+      const v = parseFloat(document.getElementById(id).value);
+      return isNaN(v) ? 0 : v;
+    }
+
+    // 기존값 입력 시: 증감이 비어있으면 신규 = 기존
+    function syncFromOld(key) {
+      const oldEl = document.getElementById("old_" + key);
+      const deltaEl = document.getElementById("delta_" + key);
+      const newEl = document.getElementById("new_" + key);
+
+      const oldVal = parseFloat(oldEl.value);
+      const deltaRaw = deltaEl.value;
+
+      if (deltaRaw === "" || deltaRaw === null) {
+        if (!isNaN(oldVal)) newEl.value = oldVal.toFixed(3);
+        else newEl.value = "";
+      } else {
+        updateNewFromDelta(key);
+      }
+    }
+
+    // 증감 입력 시: 신규 = 기존 + 증감
+    function updateNewFromDelta(key) {
+      const oldEl = document.getElementById("old_" + key);
+      const deltaEl = document.getElementById("delta_" + key);
+      const newEl = document.getElementById("new_" + key);
+
+      const oldVal = parseFloat(oldEl.value);
+      const deltaVal = parseFloat(deltaEl.value);
+
+      if (!isNaN(oldVal) || !isNaN(deltaVal)) {
+        const ov = isNaN(oldVal) ? 0 : oldVal;
+        const dv = isNaN(deltaVal) ? 0 : deltaVal;
+        newEl.value = (ov + dv).toFixed(3);
+      } else {
+        newEl.value = "";
+      }
+    }
+
+    // 증감 색상 (플러스 빨강 / 마이너스 파랑)
+    function colorDelta(inputEl) {
+      const v = parseFloat(inputEl.value);
+      inputEl.classList.remove("delta-positive", "delta-negative");
+      if (isNaN(v) || v === 0) return;
+      if (v > 0) inputEl.classList.add("delta-positive");
+      else inputEl.classList.add("delta-negative");
+    }
+
+    // 데미지 계산 공식
+    function calcDamage(s) {
+      const atk = s.atk;
+      const cr  = s.cr / 100.0;   // 85 → 0.85
+      const cd  = s.cd / 100.0;   // 172.3 → 1.723
+
+      return atk
+        * (1 + s.dmg   / 100.0)
+        * (1 + s.stat  / 100.0)
+        * (1 + s.amp   / 100.0)
+        * (1 + s.boss  / 100.0)
+        * ((s.min + s.max) / 200.0)    // (최소+최대)/2 /100
+        * (1 + s.skill / 100.0)       // 스킬데미지 58 → 1.58배
+        * (cr * cd + (1 - cr) * 1.0)  // (크확*크피)+(1-크확)
+        * (1 + s.final / 100.0);
+    }
+
+    // 세트 수집
+    function collectSet(prefix) {
+      const set = {};
+      stats.forEach(s => {
+        set[s.key] = num(prefix + s.key);
+      });
+      return set;
+    }
+
+    // 효율 분석용 기준 세트 (신규 우선, 없으면 기존, 둘 다 없으면 기본값)
+    function getBaseForEfficiency() {
+      const base = {};
+      stats.forEach(s => {
+        const newStr = document.getElementById("new_" + s.key).value.trim();
+        const oldStr = document.getElementById("old_" + s.key).value.trim();
+        let v = parseFloat(newStr);
+        if (isNaN(v)) v = parseFloat(oldStr);
+
+        if (isNaN(v)) {
+          // 아무것도 안 넣었을 때 기본값
+          if (s.key === "atk") v = 100000;  // 대략적인 기본 공격력
+          else v = 0;                        // 나머지는 0%
+        }
+        base[s.key] = v;
+      });
+      return base;
+    }
+
+    // 최종 데미지 계산 + 효율 분석
+    function calculate() {
+      const oldSet = collectSet("old_");
+      const newSet = collectSet("new_");
+
+      // 신규가 비어있고 기존만 있으면 신규 = 기존 자동 복사
+      stats.forEach(s => {
+        const newEl = document.getElementById("new_" + s.key);
+        const oldEl = document.getElementById("old_" + s.key);
+        if (!newEl.value && oldEl.value) {
+          newEl.value = oldEl.value;
+          newSet[s.key] = parseFloat(oldEl.value) || 0;
+        }
+      });
+
+      const oldDamage = calcDamage(oldSet);
+      const newDamage = calcDamage(newSet);
+
+      const oldSpan = document.getElementById("oldDamage");
+      const newSpan = document.getElementById("newDamage");
+      const diffSpan = document.getElementById("diffPercent");
+      const boostSpan = document.getElementById("boostDamage");
+
+      if (!oldDamage || !isFinite(oldDamage)) oldSpan.textContent = "-";
+      else oldSpan.textContent = oldDamage.toFixed(2);
+
+      if (!newDamage || !isFinite(newDamage)) newSpan.textContent = "-";
+      else newSpan.textContent = newDamage.toFixed(2);
+
+      if (!oldDamage || !newDamage || !isFinite(oldDamage) || !isFinite(newDamage)) {
+        diffSpan.textContent = "-";
+        diffSpan.className = "";
+      } else {
+        const diff = newDamage / oldDamage - 1;
+        const diffPercent = diff * 100;
+        diffSpan.textContent = diffPercent.toFixed(2) + " %";
+        if (diff > 0) diffSpan.className = "positive";
+        else if (diff < 0) diffSpan.className = "negative";
+        else diffSpan.className = "";
+      }
+
+      // 기준 증가량을 모두 더한 세트로 데미지 계산
+      const boosted = Object.assign({}, newSet);
+      stats.forEach(s => {
+        const stepEl = document.getElementById("step_" + s.key);
+        if (stepEl) {
+          const v = parseFloat(stepEl.value);
+          if (!isNaN(v)) boosted[s.key] += v;
+        }
+      });
+      const boostedDamage = calcDamage(boosted);
+      if (!boostedDamage || !isFinite(boostedDamage)) boostSpan.textContent = "-";
+      else boostSpan.textContent = boostedDamage.toFixed(2);
+
+      // 같은 타이밍에 효율 분석도 실행 (조용히)
+      analyzeEfficiency(true);
+    }
+
+    // 효율 계산 (silent=true면 alert 없음)
+    function analyzeEfficiency(silent) {
+      const baseSet = getBaseForEfficiency();
+      const baseDamage = calcDamage(baseSet);
+
+      if (!baseDamage || !isFinite(baseDamage)) {
+        if (!silent) {
+          alert("먼저 최소한의 능력치를 입력해 주세요. (공격력과 크확/크뎀 등)");
+        }
+        return;
+      }
+
+      const ranking = [];
+
+      stats.forEach(s => {
+        const stepInput = document.getElementById("step_" + s.key);
+        let step = parseFloat(stepInput.value);
+        const deltaCell = document.getElementById("eff_delta_" + s.key);
+        const normCell = document.getElementById("eff_norm_" + s.key);
+
+        if (isNaN(step) || step <= 0) {
+          deltaCell.textContent = "-";
+          normCell.textContent = "-";
+          return;
+        }
+
+        const testSet = Object.assign({}, baseSet);
+        testSet[s.key] = (testSet[s.key] || 0) + step;
+
+        const newDamage = calcDamage(testSet);
+        if (!newDamage || !isFinite(newDamage)) {
+          deltaCell.textContent = "-";
+          normCell.textContent = "-";
+          return;
+        }
+
+        const totalGain = (newDamage / baseDamage - 1) * 100; // %
+        let normGain;
+
+        if (s.key === "atk") {
+          const factor = step / 1000.0;
+          normGain = totalGain / factor;        // 1000당
+          normCell.textContent = normGain.toFixed(3) + " % / 1000";
+        } else {
+          normGain = totalGain / step;          // 1%당
+          normCell.textContent = normGain.toFixed(3) + " % / 1%";
+        }
+
+        deltaCell.textContent = totalGain.toFixed(3) + " %";
+
+        ranking.push({ label: s.label, normGain });
+      });
+
+      // 정규화 효율 순위 정렬
+      ranking.sort((a, b) => b.normGain - a.normGain);
+
+      const summary = document.getElementById("eff-summary");
+      if (ranking.length === 0) {
+        summary.style.display = "none";
+        summary.innerHTML = "";
+        return;
+      }
+
+      let html = "<b>현재 입력 기준 스탯 효율 순위</b> (값이 높을수록 1단위당 효율 ↑)<br>";
+      ranking.forEach((r, idx) => {
+        const rank = idx + 1;
+        const cls = rank === 1 ? "eff-best" : "";
+        html += `<span class="${cls}">${rank}위: ${r.label} — ${r.normGain.toFixed(3)} %</span><br>`;
+      });
+      summary.style.display = "block";
+      summary.innerHTML = html;
+    }
+
+    // 전체 초기화
+    function resetValues() {
+      stats.forEach(s => {
+        document.getElementById("old_" + s.key).value = "";
+        const d = document.getElementById("delta_" + s.key);
+        d.value = "";
+        d.classList.remove("delta-positive", "delta-negative");
+        document.getElementById("new_" + s.key).value = "";
+        document.getElementById("eff_delta_" + s.key).textContent = "-";
+        document.getElementById("eff_norm_" + s.key).textContent = "-";
+      });
+      document.getElementById("oldDamage").textContent = "-";
+      document.getElementById("newDamage").textContent = "-";
+      document.getElementById("boostDamage").textContent = "-";
+      const diffSpan = document.getElementById("diffPercent");
+      diffSpan.textContent = "-";
+      diffSpan.className = "";
+      const summary = document.getElementById("eff-summary");
+      summary.style.display = "none";
+      summary.innerHTML = "";
+    }
+
+    // 저장 / 불러오기 / 삭제
+    function saveData(){
+      const name = document.getElementById("saveName").value.trim();
+      if(!name){ alert("세이브 이름을 입력하세요."); return; }
+
+      let data = {};
+      stats.forEach(s=>{
+        data[s.key] = {
+          old: document.getElementById("old_"+s.key).value,
+          delta: document.getElementById("delta_"+s.key).value,
+          step: document.getElementById("step_"+s.key)?.value || ""
+        };
+      });
+      localStorage.setItem("tori_" + name, JSON.stringify(data));
+      alert("저장 완료: " + name);
+    }
+
+    function loadData(){
+      const name = document.getElementById("saveName").value.trim();
+      if(!name){ alert("세이브 이름을 입력하세요."); return; }
+
+      const raw = localStorage.getItem("tori_" + name);
+      if(!raw){ alert("저장된 데이터가 없습니다."); return; }
+
+      const data = JSON.parse(raw);
+      stats.forEach(s=>{
+        if(data[s.key]){
+          document.getElementById("old_"+s.key).value = data[s.key].old || "";
+          document.getElementById("delta_"+s.key).value = data[s.key].delta || "";
+          if(document.getElementById("step_"+s.key)){
+            document.getElementById("step_"+s.key).value = data[s.key].step || (s.key === "atk" ? 1000 : 1);
+          }
+          colorDelta(document.getElementById("delta_"+s.key));
+          syncFromOld(s.key);
+        }
+      });
+      alert("불러오기 완료: " + name);
+    }
+
+    function deleteData(){
+      const name = document.getElementById("saveName").value.trim();
+      if(!name){ alert("세이브 이름을 입력하세요."); return; }
+
+      localStorage.removeItem("tori_" + name);
+      alert("삭제 완료: " + name);
+    }
+
+    // 초기 실행
+    createStatRows();
+    createEffRows();
+  </script>
+</body>
+</html>
