@@ -5,7 +5,7 @@
 
   <title>토리펀 - 메이플키우기 최종데미지 계산기</title>
 
-  <!-- 카톡/디스코드 공유용 메타 -->
+  <!-- 카톡/디코 공유용 -->
   <meta property="og:title" content="토리펀 - 메이플키우기 최종데미지 계산기">
   <meta property="og:description" content="메이플 키우기 최종 데미지 비교 및 스탯 효율 계산기">
   <meta property="og:url" content="https://heestory1.github.io/damage-calculator/">
@@ -17,9 +17,7 @@
     :root {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 12px;
@@ -81,6 +79,7 @@
       color: #1d4ed8;
       font-size: 0.75rem;
       font-weight: 600;
+      line-height: 1.4;
     }
 
     .note {
@@ -227,7 +226,6 @@
     .positive { color: #dc2626; font-weight: 700; }
     .negative { color: #2563eb; font-weight: 700; }
 
-    /* 증감 입력 색상 (플러스=빨강, 마이너스=파랑) */
     .delta-positive { color: #dc2626; font-weight: 600; }
     .delta-negative { color: #2563eb; font-weight: 600; }
 
@@ -292,6 +290,8 @@
       <div class="note">
         · 모든 % 수치는 그대로 입력합니다. 예) 크리티컬 데미지 172.3% → <b>172.3</b>, 스킬데미지 58% → <b>58</b><br>
         · <b>증가/감소</b> 칸에는 <b>+ / − 변화량</b>만 입력합니다. 예) 크확 +0.7% → <b>+0.7</b>, 크뎀 -5.5% → <b>-5.5</b><br>
+        · <b>상태창 공격력</b> 칸에는 마을에서 보이는 <b>상태창 공격력</b>을 그대로 입력합니다. (무기보유효과 포함, 스킬 미포함)<br>
+        · <b>공격력 증가/감소</b> 칸에는 무기보유효과/스킬 적용 전의 <b>순수 공격력</b> 변화량만 입력합니다.<br>
         · 증감을 비워두면 <b>신규 수치 = 기존 수치</b>로 자동 복사됩니다.<br>
         · <b>스탯비례 데미지</b>는 주스탯 % 증가량에 따라 달라지므로, 착용 전/후 스탯비례%를 직접 계산하여 증감만 넣어 주세요.<br>
         &nbsp;&nbsp;예시: 착용 전 400% / 착용 후 300% → 증감 칸에 <b>-100</b> 입력<br>
@@ -363,16 +363,16 @@
         <div class="section-title">스탯 효율 분석</div>
         <div class="eff-note">
           · 효율 계산은 <b>현재 입력된 능력치</b> 기준입니다. 신규 수치가 있으면 그걸, 없으면 기존 수치를 사용합니다.<br>
-          · 기본 기준은 모든 %스탯 <b>+1%</b>, <b>기본 공격력</b>은 <b>+1000</b>입니다. 아래에서 항목별 기준 증가량을 마음대로 바꿀 수 있습니다.
+          · 기본 기준은 모든 %스탯 <b>+1%</b>, <b>공격력</b>은 <b>순수 공격력 +1000</b>입니다. 아래에서 항목별 기준 증가량을 마음대로 바꿀 수 있습니다.
         </div>
         <div class="table-wrapper" style="margin-top:6px;">
           <table>
             <thead>
               <tr>
                 <th>항목</th>
-                <th>기준 증가량<br><span style="font-size:0.75rem;color:#6b7280;">(% 또는 공격력)</span></th>
+                <th>기준 증가량<br><span style="font-size:0.75rem;color:#6b7280;">(% 또는 순수 공격력)</span></th>
                 <th>데미지 증가율<br><span style="font-size:0.75rem;color:#6b7280;">(해당 증가량 전체 기준)</span></th>
-                <th>정규화 효율<br><span style="font-size:0.75rem;color:#6b7280;">공격력: 1000당 / 나머지: 1%당</span></th>
+                <th>정규화 효율<br><span style="font-size:0.75rem;color:#6b7280;">공격력: 순수공 1000당 / 나머지: 1%당</span></th>
               </tr>
             </thead>
             <tbody id="eff-rows"></tbody>
@@ -388,9 +388,9 @@
 
   <script>
     // 스탯 목록 정의
-    // 공격력 분리: 기본 공격력 / 무기 보유효과% / 스킬 공격력% 증가
+    // atkBase: 마을 상태창 공격력 (표시용), 계산 시에는 순수공으로 변환해서 사용
     const stats = [
-      { key: "atkBase",     label: "기본 공격력" },
+      { key: "atkBase",     label: "상태창 공격력(마을 기준)" },
       { key: "atkBaseEff",  label: "무기 보유효과(합연산, %)" },
       { key: "atkSkill",    label: "스킬 공격력% 증가(합연산, %)" },
       { key: "cr",          label: "크리티컬 확률(%)" },
@@ -473,6 +473,18 @@
       return isNaN(v) ? 0 : v;
     }
 
+    // 마을 상태창 공격력 → 순수 공격력으로 변환
+    function townToBaseAtk(townAtk, baseEff) {
+      const denom = 1 + baseEff / 100.0;
+      if (!denom) return 0;
+      return townAtk / denom;
+    }
+
+    // 순수 공격력 + 보유효과 → 마을 상태창 공격력
+    function baseToTownAtk(baseAtk, baseEff) {
+      return baseAtk * (1 + baseEff / 100.0);
+    }
+
     // 기존값 입력 시: 증감이 비어있으면 신규 = 기존
     function syncFromOld(key) {
       const oldEl   = document.getElementById("old_" + key);
@@ -486,15 +498,43 @@
         if (!isNaN(oldVal)) newEl.value = oldVal.toFixed(3);
         else newEl.value = "";
       } else {
+        // delta가 이미 있으면 delta 기준으로 처리
         updateNewFromDelta(key);
+      }
+
+      if (key === "atkBase" || key === "atkBaseEff") {
+        computeNewTownAtk();
       }
     }
 
-    // 증감 입력 시: 신규 = 기존 + 증감
+    // 증감 입력 시: 신규 = 기존 + 증감 (공격력/보유효과는 별도 처리)
     function updateNewFromDelta(key) {
       const oldEl   = document.getElementById("old_" + key);
       const deltaEl = document.getElementById("delta_" + key);
       const newEl   = document.getElementById("new_" + key);
+
+      if (key === "atkBase") {
+        // delta_atkBase는 순수 공격력 변화량만 의미 → 신규 상태창 공격력은 별도 계산
+        colorDelta(deltaEl);
+        computeNewTownAtk();
+        return;
+      }
+
+      if (key === "atkBaseEff") {
+        const oldVal   = parseFloat(oldEl.value);
+        const deltaVal = parseFloat(deltaEl.value);
+
+        if (!isNaN(oldVal) || !isNaN(deltaVal)) {
+          const ov = isNaN(oldVal) ? 0 : oldVal;
+          const dv = isNaN(deltaVal) ? 0 : deltaVal;
+          newEl.value = (ov + dv).toFixed(3);
+        } else {
+          newEl.value = "";
+        }
+        colorDelta(deltaEl);
+        computeNewTownAtk(); // 보유효과가 바뀌면 상태창 공격력도 다시 계산
+        return;
+      }
 
       const oldVal   = parseFloat(oldEl.value);
       const deltaVal = parseFloat(deltaEl.value);
@@ -508,6 +548,42 @@
       }
     }
 
+    // 공격력 신규 수치 계산 (상태창 공격력 기준)
+    function computeNewTownAtk() {
+      const oldStr = document.getElementById("old_atkBase").value.trim();
+      const newEl  = document.getElementById("new_atkBase");
+
+      if (oldStr === "") {
+        newEl.value = "";
+        return;
+      }
+
+      const oldTown = parseFloat(oldStr);
+      if (isNaN(oldTown)) {
+        newEl.value = "";
+        return;
+      }
+
+      const oldEff = num("old_atkBaseEff");
+
+      const deltaEffStr = document.getElementById("delta_atkBaseEff").value.trim();
+      const deltaAtkStr = document.getElementById("delta_atkBase").value.trim();
+
+      const deltaEff = deltaEffStr === "" ? 0 : parseFloat(deltaEffStr);
+      const deltaAtk = deltaAtkStr === "" ? 0 : parseFloat(deltaAtkStr);
+
+      const baseOld = townToBaseAtk(oldTown, oldEff);
+      const baseNew = baseOld + (isNaN(deltaAtk) ? 0 : deltaAtk);
+      const effNew  = oldEff + (isNaN(deltaEff) ? 0 : deltaEff);
+
+      const townNew = baseToTownAtk(baseNew, effNew);
+      if (!isFinite(townNew)) {
+        newEl.value = "";
+        return;
+      }
+      newEl.value = townNew.toFixed(0); // 상태창 공격력은 정수로 표시
+    }
+
     // 증감 색상 (플러스 빨강 / 마이너스 파랑)
     function colorDelta(inputEl) {
       const v = parseFloat(inputEl.value);
@@ -519,11 +595,15 @@
 
     // 데미지 계산 공식
     function calcDamage(s) {
-      // 공격력 = 기본 공격력 × (1 + 무기보유효과/100) × (1 + 스킬공%/100)
+      // s.atkBase : 순수 공격력
       const baseAtk   = s.atkBase;
-      const baseEff   = s.atkBaseEff;
-      const skillEff  = s.atkSkill;
-      const atk = baseAtk * (1 + baseEff / 100.0) * (1 + skillEff / 100.0);
+      const baseEff   = s.atkBaseEff;  // 무기 보유효과(%)
+      const skillEff  = s.atkSkill;    // 스킬 공격력% 증가(%)
+
+      // 전투 상황의 실제 공격력
+      const atk = baseAtk
+        * (1 + baseEff  / 100.0)
+        * (1 + skillEff / 100.0);
 
       const cr  = s.cr / 100.0;   // 85 → 0.85
       const cd  = s.cd / 100.0;   // 172.3 → 1.723
@@ -534,21 +614,27 @@
         * (1 + s.amp   / 100.0)
         * (1 + s.boss  / 100.0)
         * ((s.min + s.max) / 200.0)    // (최소+최대)/2 /100
-        * (1 + s.skill / 100.0)       // 스킬데미지 58 → 1.58배
-        * (cr * cd + (1 - cr) * 1.0)  // (크확*크피)+(1-크확)
+        * (1 + s.skill / 100.0)        // 스킬데미지 58 → 1.58배
+        * (cr * cd + (1 - cr) * 1.0)   // (크확*크피)+(1-크확)
         * (1 + s.final / 100.0);
     }
 
-    // 세트 수집
+    // 세트 수집: prefix("old_" 또는 "new_")에서 읽어서 순수공으로 변환
     function collectSet(prefix) {
       const set = {};
       stats.forEach(s => {
         set[s.key] = num(prefix + s.key);
       });
+
+      const townAtk = set.atkBase;       // 마을 상태창 공격력
+      const baseEff = set.atkBaseEff;    // 무기 보유효과(%)
+      const baseAtk = townToBaseAtk(townAtk, baseEff); // 순수공으로 변환
+      set.atkBase = baseAtk;
+
       return set;
     }
 
-    // 효율 분석용 기준 세트 (신규 우선, 없으면 기존, 둘 다 없으면 기본값)
+    // 효율 분석용 기준 세트 (신규 우선, 없으면 기존)
     function getBaseForEfficiency() {
       const base = {};
       stats.forEach(s => {
@@ -558,11 +644,15 @@
         if (isNaN(v)) v = parseFloat(oldStr);
 
         if (isNaN(v)) {
-          if (s.key === "atkBase") v = 100000;  // 기본 공격력 대략값
-          else v = 0;                           // 나머지는 0%
+          if (s.key === "atkBase") v = 100000;  // 상태창 공격력 대략값
+          else v = 0;
         }
         base[s.key] = v;
       });
+
+      // 상태창 공격력 → 순수공으로 변환
+      base.atkBase = townToBaseAtk(base.atkBase, base.atkBaseEff);
+
       return base;
     }
 
@@ -577,7 +667,12 @@
         const oldEl = document.getElementById("old_" + s.key);
         if (!newEl.value && oldEl.value) {
           newEl.value = oldEl.value;
-          newSet[s.key] = parseFloat(oldEl.value) || 0;
+          if (s.key === "atkBase") {
+            // 상태창 공격력은 collectSet에서 순수공으로 변환되므로 여기서는 그대로 두면 됨
+            newSet[s.key] = oldSet[s.key];
+          } else {
+            newSet[s.key] = parseFloat(oldEl.value) || 0;
+          }
         }
       });
 
@@ -607,31 +702,38 @@
         else diffSpan.className = "";
       }
 
-      // 기준 증가량을 모두 더한 세트로 데미지 계산
+      // 기준 증가량 전체 더한 세트로 데미지 계산
       const boosted = Object.assign({}, newSet);
       stats.forEach(s => {
         const stepEl = document.getElementById("step_" + s.key);
         if (stepEl) {
           const v = parseFloat(stepEl.value);
-          if (!isNaN(v)) boosted[s.key] += v;
+          if (!isNaN(v)) {
+            if (s.key === "atkBase") {
+              // 순수공 기준 증가량
+              boosted.atkBase += v;
+            } else {
+              boosted[s.key] += v;
+            }
+          }
         }
       });
       const boostedDamage = calcDamage(boosted);
       if (!boostedDamage || !isFinite(boostedDamage)) boostSpan.textContent = "-";
       else boostSpan.textContent = boostedDamage.toFixed(2);
 
-      // 같은 타이밍에 효율 분석도 실행 (조용히)
+      // 같은 타이밍에 효율 분석도 실행
       analyzeEfficiency(true);
     }
 
-    // 효율 계산 (silent=true면 alert 없음)
+    // 효율 계산
     function analyzeEfficiency(silent) {
-      const baseSet = getBaseForEfficiency();
+      const baseSet = getBaseForEfficiency(); // atkBase는 순수공 기준
       const baseDamage = calcDamage(baseSet);
 
       if (!baseDamage || !isFinite(baseDamage)) {
         if (!silent) {
-          alert("먼저 최소한의 능력치를 입력해 주세요. (기본 공격력, 무기보유효과, 크확/크뎀 등)");
+          alert("먼저 최소한의 능력치를 입력해 주세요. (상태창 공격력, 무기보유효과, 크확/크뎀 등)");
         }
         return;
       }
@@ -651,7 +753,13 @@
         }
 
         const testSet = Object.assign({}, baseSet);
-        testSet[s.key] = (testSet[s.key] || 0) + step;
+
+        if (s.key === "atkBase") {
+          // 순수 공격력 기준 증가량
+          testSet.atkBase = (testSet.atkBase || 0) + step;
+        } else {
+          testSet[s.key] = (testSet[s.key] || 0) + step;
+        }
 
         const newDamage = calcDamage(testSet);
         if (!newDamage || !isFinite(newDamage)) {
@@ -664,12 +772,11 @@
         let normGain;
 
         if (s.key === "atkBase") {
-          // 공격력: 기준 증가량(step)이 1000일 때를 1단위로 보고 정규화
-          const factor = step / 1000.0;
-          normGain = totalGain / factor;        // 1000당 증가율
-          normCell.textContent = normGain.toFixed(3) + " % / 1000공";
+          const factor = step / 1000.0; // 순수공 1000 기준
+          normGain = totalGain / factor;
+          normCell.textContent = normGain.toFixed(3) + " % / 순수공 1000";
         } else {
-          normGain = totalGain / step;          // 1%당
+          normGain = totalGain / step;  // 1%당
           normCell.textContent = normGain.toFixed(3) + " % / 1%";
         }
 
@@ -678,7 +785,6 @@
         ranking.push({ label: s.label, normGain });
       });
 
-      // 정규화 효율 순위 정렬
       ranking.sort((a, b) => b.normGain - a.normGain);
 
       const summary = document.getElementById("eff-summary");
@@ -720,7 +826,7 @@
       summary.innerHTML = "";
     }
 
-    // 저장 / 불러오기 / 삭제 + 목록 관리
+    // 저장 / 불러오기 / 삭제 + 목록
     function saveData(){
       const nameInput = document.getElementById("saveName");
       let name = nameInput.value.trim();
