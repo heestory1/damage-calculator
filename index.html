@@ -22,7 +22,7 @@
     }
     body {
       margin: 0;
-      padding: 16px;
+      padding: 12px;
       background: radial-gradient(circle at top left, #eef2ff, #f3f4f6 45%, #e5edff 85%);
       color: #111827;
     }
@@ -34,20 +34,21 @@
       background: #ffffff;
       border-radius: 16px;
       box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-      padding: 16px 18px 20px;
+      padding: 14px 14px 18px;
       border: 1px solid rgba(148, 163, 184, 0.25);
     }
     .header {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .app-title-row {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
+      align-items: flex-start;
       gap: 8px;
+      flex-wrap: wrap;
     }
     .app-title {
       font-size: 1.8rem;
@@ -58,16 +59,30 @@
       color: transparent;
     }
     .app-subtitle {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: #4b5563;
       font-weight: 500;
+      margin-top: 2px;
     }
     .maker {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: #64748b;
       font-weight: 600;
       text-align: right;
+      white-space: nowrap;
     }
+
+    .update-badge {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.09);
+      color: #1d4ed8;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
     .note {
       font-size: 0.8rem;
       color: #374151;
@@ -81,9 +96,9 @@
     .note b { font-weight: 700; }
 
     .section-title {
-      font-size: 1.02rem;
+      font-size: 0.98rem;
       font-weight: 700;
-      margin: 16px 0 6px;
+      margin: 14px 0 6px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -96,21 +111,28 @@
       background: linear-gradient(180deg, #2563eb, #7c3aed);
     }
 
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
     table {
       border-collapse: collapse;
       width: 100%;
-      font-size: 0.82rem;
-      margin-top: 6px;
-      border-radius: 12px;
-      overflow: hidden;
-      table-layout: fixed;
+      min-width: 640px;
+      font-size: 0.78rem;
+      margin: 0;
+      background: #ffffff;
     }
     th, td {
       border: 1px solid #e2e8f0;
       padding: 4px 4px;
       text-align: center;
       word-break: keep-all;
-      white-space: nowrap;
+      white-space: normal;
     }
     th {
       background: #f8fafc;
@@ -123,12 +145,12 @@
 
     input[type="number"] {
       padding: 3px 4px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       border-radius: 8px;
       border: 1px solid #cbd5e1;
       background: #ffffff;
       transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
-      width: 86px;
+      width: 80px;
       text-align: right;
     }
     input[type="number"]:focus {
@@ -145,8 +167,8 @@
       flex-wrap: wrap;
     }
     button {
-      padding: 6px 14px;
-      font-size: 0.82rem;
+      padding: 6px 12px;
+      font-size: 0.78rem;
       border-radius: 999px;
       border: 1px solid transparent;
       background: linear-gradient(135deg, #2563eb, #4f46e5);
@@ -157,7 +179,7 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+      box-shadow: 0 5px 14px rgba(37, 99, 235, 0.25);
       transition: transform 0.06s ease, box-shadow 0.12s ease, filter 0.08s ease;
     }
     button.secondary {
@@ -174,7 +196,7 @@
     }
     button:hover {
       filter: brightness(1.03);
-      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+      box-shadow: 0 7px 16px rgba(15, 23, 42, 0.18);
       transform: translateY(-1px);
     }
     button:active {
@@ -184,7 +206,7 @@
 
     .result-box {
       margin-top: 8px;
-      padding: 10px 12px;
+      padding: 10px 10px;
       border-radius: 12px;
       background: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -193,12 +215,12 @@
       gap: 8px;
     }
     .result-item-label {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: #64748b;
       margin-bottom: 2px;
     }
     .result-item-value {
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       font-weight: 600;
     }
 
@@ -210,7 +232,7 @@
     .delta-negative { color: #2563eb; font-weight: 600; }
 
     .eff-note {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: #475569;
       margin-top: 4px;
     }
@@ -224,24 +246,27 @@
       border-radius: 10px;
       background: #f9fafb;
       border: 1px dashed #cbd5e1;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: #334155;
       display: none;
     }
 
-    #saveName {
+    #saveName,
+    #saveList {
       padding: 5px 8px;
       border-radius: 999px;
       border: 1px solid #cbd5e1;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
+      background: #ffffff;
     }
 
     @media (max-width: 640px) {
-      body { padding: 10px; }
-      .card { padding: 12px 12px 16px; }
+      body { padding: 8px; }
+      .card { padding: 10px 10px 14px; }
       .app-title { font-size: 1.5rem; }
+      .app-subtitle { font-size: 0.78rem; }
       input[type="number"] { width: 70px; }
-      th, td { font-size: 0.78rem; padding: 3px 2px; }
+      th, td { font-size: 0.76rem; padding: 3px 3px; }
       .result-box { grid-template-columns: 1fr; }
     }
   </style>
@@ -254,6 +279,11 @@
           <div>
             <div class="app-title">토리펀</div>
             <div class="app-subtitle">메이플키우기 최종 데미지 비교 · 스탯 효율 분석</div>
+            <div class="update-badge">
+              12/1 업데이트 내용 : 공격력 관련 공식이 업데이트 되었습니다.<br>
+              무기보유효과(합연산/에인션트까지 모두 보유 시 <b>6983.1</b> 입력)와<br>
+              스킬로 올라가는 공격력 %(합연산)을 추가로 입력해주세요.
+            </div>
           </div>
           <div class="maker">스카니아9 히수토리</div>
         </div>
@@ -264,14 +294,19 @@
         · <b>증가/감소</b> 칸에는 <b>+ / − 변화량</b>만 입력합니다. 예) 크확 +0.7% → <b>+0.7</b>, 크뎀 -5.5% → <b>-5.5</b><br>
         · 증감을 비워두면 <b>신규 수치 = 기존 수치</b>로 자동 복사됩니다.<br>
         · <b>스탯비례 데미지</b>는 주스탯 % 증가량에 따라 달라지므로, 착용 전/후 스탯비례%를 직접 계산하여 증감만 넣어 주세요.<br>
-        &nbsp;&nbsp;예시: 착용 전 400% / 착용 후 300% → 증감 칸에 <b>-100</b> 입력
+        &nbsp;&nbsp;예시: 착용 전 400% / 착용 후 300% → 증감 칸에 <b>-100</b> 입력<br>
+        · <b>무기 보유효과(합연산)</b>는 에인션트까지 모두 보유 시 <b>6983.1</b>을 입력하고, 그 외 보유량에 맞게 합연산 수치를 입력해 주세요.<br>
+        · <b>스킬 공격력% 증가(합연산)</b>에는 스킬/버프로 인해 합산된 공격력% 증가량을 입력해 주세요.
       </div>
 
       <!-- 저장 / 불러오기 -->
       <div class="section">
         <div class="section-title">세팅 저장 / 불러오기</div>
         <div class="btn-row">
-          <input id="saveName" type="text" placeholder="세이브 이름 (예: 주 보스 세팅)" style="flex:1; min-width:140px;">
+          <input id="saveName" type="text" placeholder="세이브 이름 (예: 주 보스 세팅)" style="flex:1; min-width:120px;">
+          <select id="saveList" onchange="onSelectSave(this)">
+            <option value="">저장된 세팅 선택</option>
+          </select>
           <button type="button" onclick="saveData()">저장</button>
           <button type="button" class="secondary" onclick="loadData()">불러오기</button>
           <button type="button" class="danger" onclick="deleteData()">삭제</button>
@@ -281,17 +316,19 @@
       <!-- 능력치 입력 -->
       <div class="section">
         <div class="section-title">능력치 입력</div>
-        <table>
-          <thead>
-            <tr>
-              <th>항목</th>
-              <th>기존 수치</th>
-              <th>증가/감소</th>
-              <th>신규 수치 (자동)</th>
-            </tr>
-          </thead>
-          <tbody id="stats-rows"></tbody>
-        </table>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th>기존 수치</th>
+                <th>증가/감소</th>
+                <th>신규 수치 (자동)</th>
+              </tr>
+            </thead>
+            <tbody id="stats-rows"></tbody>
+          </table>
+        </div>
         <div class="btn-row">
           <button type="button" onclick="calculate()">최종 데미지 계산 + 효율 분석</button>
           <button type="button" class="secondary" onclick="resetValues()">전체 초기화</button>
@@ -315,7 +352,7 @@
             <div class="result-item-value" id="diffPercent">-</div>
           </div>
           <div>
-            <div class="result-item-label">기준 증가 적용 후 데미지<br><span style="font-size:0.72rem;color:#6b7280;">(아래 기준 증가량 그대로 적용)</span></div>
+            <div class="result-item-label">기준 증가 적용 후 데미지<br><span style="font-size:0.72rem;color:#6b7280;">(아래 기준 증가량 전체 적용)</span></div>
             <div class="result-item-value" id="boostDamage">-</div>
           </div>
         </div>
@@ -326,19 +363,21 @@
         <div class="section-title">스탯 효율 분석</div>
         <div class="eff-note">
           · 효율 계산은 <b>현재 입력된 능력치</b> 기준입니다. 신규 수치가 있으면 그걸, 없으면 기존 수치를 사용합니다.<br>
-          · 기본 기준은 모든 %스탯 <b>+1%</b>, 공격력은 <b>+1000</b>입니다. 아래에서 항목별 기준 증가량을 마음대로 바꿀 수 있습니다.
+          · 기본 기준은 모든 %스탯 <b>+1%</b>, <b>기본 공격력</b>은 <b>+1000</b>입니다. 아래에서 항목별 기준 증가량을 마음대로 바꿀 수 있습니다.
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>항목</th>
-              <th>기준 증가량<br><span style="font-size:0.75rem;color:#6b7280;">(% 또는 공격력)</span></th>
-              <th>데미지 증가율<br><span style="font-size:0.75rem;color:#6b7280;">(해당 증가량 전체 기준)</span></th>
-              <th>정규화 효율<br><span style="font-size:0.75rem;color:#6b7280;">공격력: 1000당 / 나머지: 1%당</span></th>
-            </tr>
-          </thead>
-          <tbody id="eff-rows"></tbody>
-        </table>
+        <div class="table-wrapper" style="margin-top:6px;">
+          <table>
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th>기준 증가량<br><span style="font-size:0.75rem;color:#6b7280;">(% 또는 공격력)</span></th>
+                <th>데미지 증가율<br><span style="font-size:0.75rem;color:#6b7280;">(해당 증가량 전체 기준)</span></th>
+                <th>정규화 효율<br><span style="font-size:0.75rem;color:#6b7280;">공격력: 1000당 / 나머지: 1%당</span></th>
+              </tr>
+            </thead>
+            <tbody id="eff-rows"></tbody>
+          </table>
+        </div>
         <div class="btn-row">
           <button type="button" class="secondary" onclick="analyzeEfficiency(false)">효율만 다시 계산</button>
         </div>
@@ -349,18 +388,21 @@
 
   <script>
     // 스탯 목록 정의
+    // 공격력 분리: 기본 공격력 / 무기 보유효과% / 스킬 공격력% 증가
     const stats = [
-      { key: "atk",   label: "공격력" },
-      { key: "cr",    label: "크리티컬 확률(%)" },
-      { key: "cd",    label: "크리티컬 데미지(%)" },
-      { key: "stat",  label: "스탯비례 데미지(%)" },
-      { key: "dmg",   label: "데미지(%)" },
-      { key: "amp",   label: "데미지 증폭(%)" },
-      { key: "skill", label: "스킬 데미지(%)" },
-      { key: "boss",  label: "보스/일반 데미지(%)" },
-      { key: "min",   label: "최소 데미지(%)" },
-      { key: "max",   label: "최대 데미지(%)" },
-      { key: "final", label: "최종 데미지(%)" },
+      { key: "atkBase",     label: "기본 공격력" },
+      { key: "atkBaseEff",  label: "무기 보유효과(합연산, %)" },
+      { key: "atkSkill",    label: "스킬 공격력% 증가(합연산, %)" },
+      { key: "cr",          label: "크리티컬 확률(%)" },
+      { key: "cd",          label: "크리티컬 데미지(%)" },
+      { key: "stat",        label: "스탯비례 데미지(%)" },
+      { key: "dmg",         label: "데미지(%)" },
+      { key: "amp",         label: "데미지 증폭(%)" },
+      { key: "skill",       label: "스킬 데미지(%)" },
+      { key: "boss",        label: "보스/일반 데미지(%)" },
+      { key: "min",         label: "최소 데미지(%)" },
+      { key: "max",         label: "최대 데미지(%)" },
+      { key: "final",       label: "최종 데미지(%)" },
     ];
 
     // 테이블 행 생성
@@ -415,7 +457,7 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${s.label}</td>
-          <td><input id="step_${s.key}" type="number" step="0.01" value="${s.key === "atk" ? 1000 : 1}"></td>
+          <td><input id="step_${s.key}" type="number" step="0.01" value="${s.key === "atkBase" ? 1000 : 1}"></td>
           <td id="eff_delta_${s.key}">-</td>
           <td id="eff_norm_${s.key}">-</td>
         `;
@@ -425,15 +467,17 @@
 
     // 숫자 파싱
     function num(id) {
-      const v = parseFloat(document.getElementById(id).value);
+      const el = document.getElementById(id);
+      if (!el) return 0;
+      const v = parseFloat(el.value);
       return isNaN(v) ? 0 : v;
     }
 
     // 기존값 입력 시: 증감이 비어있으면 신규 = 기존
     function syncFromOld(key) {
-      const oldEl = document.getElementById("old_" + key);
+      const oldEl   = document.getElementById("old_" + key);
       const deltaEl = document.getElementById("delta_" + key);
-      const newEl = document.getElementById("new_" + key);
+      const newEl   = document.getElementById("new_" + key);
 
       const oldVal = parseFloat(oldEl.value);
       const deltaRaw = deltaEl.value;
@@ -448,11 +492,11 @@
 
     // 증감 입력 시: 신규 = 기존 + 증감
     function updateNewFromDelta(key) {
-      const oldEl = document.getElementById("old_" + key);
+      const oldEl   = document.getElementById("old_" + key);
       const deltaEl = document.getElementById("delta_" + key);
-      const newEl = document.getElementById("new_" + key);
+      const newEl   = document.getElementById("new_" + key);
 
-      const oldVal = parseFloat(oldEl.value);
+      const oldVal   = parseFloat(oldEl.value);
       const deltaVal = parseFloat(deltaEl.value);
 
       if (!isNaN(oldVal) || !isNaN(deltaVal)) {
@@ -475,7 +519,12 @@
 
     // 데미지 계산 공식
     function calcDamage(s) {
-      const atk = s.atk;
+      // 공격력 = 기본 공격력 × (1 + 무기보유효과/100) × (1 + 스킬공%/100)
+      const baseAtk   = s.atkBase;
+      const baseEff   = s.atkBaseEff;
+      const skillEff  = s.atkSkill;
+      const atk = baseAtk * (1 + baseEff / 100.0) * (1 + skillEff / 100.0);
+
       const cr  = s.cr / 100.0;   // 85 → 0.85
       const cd  = s.cd / 100.0;   // 172.3 → 1.723
 
@@ -509,9 +558,8 @@
         if (isNaN(v)) v = parseFloat(oldStr);
 
         if (isNaN(v)) {
-          // 아무것도 안 넣었을 때 기본값
-          if (s.key === "atk") v = 100000;  // 대략적인 기본 공격력
-          else v = 0;                        // 나머지는 0%
+          if (s.key === "atkBase") v = 100000;  // 기본 공격력 대략값
+          else v = 0;                           // 나머지는 0%
         }
         base[s.key] = v;
       });
@@ -583,7 +631,7 @@
 
       if (!baseDamage || !isFinite(baseDamage)) {
         if (!silent) {
-          alert("먼저 최소한의 능력치를 입력해 주세요. (공격력과 크확/크뎀 등)");
+          alert("먼저 최소한의 능력치를 입력해 주세요. (기본 공격력, 무기보유효과, 크확/크뎀 등)");
         }
         return;
       }
@@ -615,10 +663,11 @@
         const totalGain = (newDamage / baseDamage - 1) * 100; // %
         let normGain;
 
-        if (s.key === "atk") {
+        if (s.key === "atkBase") {
+          // 공격력: 기준 증가량(step)이 1000일 때를 1단위로 보고 정규화
           const factor = step / 1000.0;
-          normGain = totalGain / factor;        // 1000당
-          normCell.textContent = normGain.toFixed(3) + " % / 1000";
+          normGain = totalGain / factor;        // 1000당 증가율
+          normCell.textContent = normGain.toFixed(3) + " % / 1000공";
         } else {
           normGain = totalGain / step;          // 1%당
           normCell.textContent = normGain.toFixed(3) + " % / 1%";
@@ -671,10 +720,14 @@
       summary.innerHTML = "";
     }
 
-    // 저장 / 불러오기 / 삭제
+    // 저장 / 불러오기 / 삭제 + 목록 관리
     function saveData(){
-      const name = document.getElementById("saveName").value.trim();
-      if(!name){ alert("세이브 이름을 입력하세요."); return; }
+      const nameInput = document.getElementById("saveName");
+      let name = nameInput.value.trim();
+      if(!name){
+        alert("세이브 이름을 입력하세요.");
+        return;
+      }
 
       let data = {};
       stats.forEach(s=>{
@@ -685,23 +738,34 @@
         };
       });
       localStorage.setItem("tori_" + name, JSON.stringify(data));
+      refreshSaveList(name);
       alert("저장 완료: " + name);
     }
 
     function loadData(){
-      const name = document.getElementById("saveName").value.trim();
-      if(!name){ alert("세이브 이름을 입력하세요."); return; }
+      let name = document.getElementById("saveName").value.trim();
+      if(!name){
+        const sel = document.getElementById("saveList");
+        name = sel.value.trim();
+      }
+      if(!name){
+        alert("불러올 세이브 이름을 선택하거나 입력하세요.");
+        return;
+      }
 
       const raw = localStorage.getItem("tori_" + name);
-      if(!raw){ alert("저장된 데이터가 없습니다."); return; }
+      if(!raw){
+        alert("해당 이름으로 저장된 데이터가 없습니다.");
+        return;
+      }
 
       const data = JSON.parse(raw);
       stats.forEach(s=>{
         if(data[s.key]){
-          document.getElementById("old_"+s.key).value = data[s.key].old || "";
+          document.getElementById("old_"+s.key).value   = data[s.key].old   || "";
           document.getElementById("delta_"+s.key).value = data[s.key].delta || "";
           if(document.getElementById("step_"+s.key)){
-            document.getElementById("step_"+s.key).value = data[s.key].step || (s.key === "atk" ? 1000 : 1);
+            document.getElementById("step_"+s.key).value = data[s.key].step || (s.key === "atkBase" ? 1000 : 1);
           }
           colorDelta(document.getElementById("delta_"+s.key));
           syncFromOld(s.key);
@@ -711,16 +775,52 @@
     }
 
     function deleteData(){
-      const name = document.getElementById("saveName").value.trim();
-      if(!name){ alert("세이브 이름을 입력하세요."); return; }
+      let name = document.getElementById("saveName").value.trim();
+      if(!name){
+        const sel = document.getElementById("saveList");
+        name = sel.value.trim();
+      }
+      if(!name){
+        alert("삭제할 세이브 이름을 선택하거나 입력하세요.");
+        return;
+      }
 
       localStorage.removeItem("tori_" + name);
+      refreshSaveList();
       alert("삭제 완료: " + name);
+    }
+
+    function refreshSaveList(selectedName) {
+      const sel = document.getElementById("saveList");
+      sel.innerHTML = '<option value="">저장된 세팅 선택</option>';
+      const names = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith("tori_")) {
+          names.push(key.substring(5));
+        }
+      }
+      names.sort();
+      names.forEach(n => {
+        const opt = document.createElement("option");
+        opt.value = n;
+        opt.textContent = n;
+        if (selectedName && selectedName === n) {
+          opt.selected = true;
+          document.getElementById("saveName").value = n;
+        }
+        sel.appendChild(opt);
+      });
+    }
+
+    function onSelectSave(sel) {
+      document.getElementById("saveName").value = sel.value;
     }
 
     // 초기 실행
     createStatRows();
     createEffRows();
+    refreshSaveList();
   </script>
 </body>
 </html>
