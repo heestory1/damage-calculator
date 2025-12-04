@@ -3,323 +3,273 @@
 <head>
 <meta charset="UTF-8">
 <title>토리펀 (메이플키우기 최종데미지 계산기)</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta property="og:title" content="토리펀 - 메이플키우기 최종데미지 계산기">
-<meta property="og:description" content="최종 데미지 비교 + 스탯 효율 분석 웹 계산기">
-<meta property="og:url" content="https://heestory1.github.io/damage-calculator/">
-<meta property="og:type" content="website">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 :root{
   --blue:#2563eb;
+  --light:#f0f5ff;
+  --line:#c7d2fe;
+  --txt:#0f172a;
   --red:#dc2626;
-  --bg:#f3f6fb;
-  --card:#ffffff;
-  --line:#e5e9f2;
-  --text:#0f172a;
-  --muted:#64748b;
 }
-*{box-sizing:border-box}
+
 body{
-  margin:0; padding:14px;
-  background:var(--bg); color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-}
-.container{max-width:980px;margin:0 auto;}
-.card{
-  background:var(--card);
-  border-radius:14px;
-  padding:16px 16px 18px;
-  box-shadow:0 8px 20px rgba(0,0,0,.06);
-}
-.header{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-.app-title{
-  font-size:1.9rem;font-weight:900;color:var(--blue);letter-spacing:-.02em
-}
-.sub{color:#1e40af;font-weight:700;margin-top:4px}
-
-/* 제작자 강조 (요청 반영) */
-.maker{
-  color:#1e40af;
-  font-weight:800;
-  font-size:0.95rem;
-  background:#eef3ff;
-  padding:4px 10px;
-  border-radius:10px;
+  margin:0;
+  background:#f5f7fb;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--txt);
 }
 
-/* 업데이트 알림 */
-.update{
-  margin:10px 0 12px; padding:10px 12px;
-  background:#eaf1ff;border-left:4px solid var(--blue);
-  border-radius:10px; color:#1d4ed8; font-weight:800
+.container{
+  max-width:900px;
+  margin:20px auto;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  padding:18px;
 }
 
-/* 안내문 */
-.note{
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+
+.title{
+  font-weight:900;
+  font-size:1.8rem;
   color:var(--blue);
+}
+
+.sub{
+  margin-top:4px;
+  color:#374151;
+  font-weight:600;
+}
+
+.maker{
+  background:linear-gradient(135deg,#2563eb,#60a5fa);
+  color:#fff;
+  padding:6px 12px;
+  border-radius:999px;
   font-weight:800;
-  background:#f0f5ff;
-  border:1px solid rgba(37,99,235,.25);
+  font-size:.95rem;
+  box-shadow:0 3px 8px rgba(37,99,235,.3);
+}
+
+.update{
+  margin:10px 0;
+  padding:8px 12px;
+  border-left:4px solid var(--blue);
+  background:#eef2ff;
+  font-weight:700;
+}
+
+.note{
+  background:var(--light);
+  border:1px solid var(--line);
   border-radius:10px;
   padding:12px;
-  line-height:1.6;
-  margin-bottom:12px;
+  line-height:1.65;
+  margin-top:10px;
+  font-size:.95rem;
+  color:#0f172a;
 }
-.note .num{ color:var(--red); font-weight:900; }
 
-/* 섹션 타이틀 */
+/* 파란 강조 */
+.hl{ color:var(--blue); font-weight:900; }
+
+/* 숫자 강조 */
+.num{ color:var(--red); font-weight:900; }
+
 .section-title{
-  display:flex;align-items:center;gap:6px;
-  font-weight:900;color:#1e40af;margin:10px 0 6px
-}
-.section-title::before{
-  content:"";width:4px;height:14px;border-radius:999px;
-  background:linear-gradient(180deg,var(--blue),#7c3aed)
+  margin-top:18px;
+  font-weight:900;
+  color:var(--blue);
 }
 
-/* 입력 영역 */
-.controls{
-  display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:10px
+.row{
+  display:flex;
+  gap:8px;
+  margin:8px 0;
 }
-.controls input, .controls select{
-  padding:10px;border:1px solid var(--line);border-radius:10px;
-}
-.controls button{
-  padding:10px 12px;border-radius:999px;border:none;
-  cursor:pointer;font-weight:900
-}
-.btn-blue{background:var(--blue);color:white}
-.btn-white{background:white;border:1px solid var(--line)}
-.btn-red{background:#fee2e2;color:#991b1b}
 
-/* 테이블 */
-table{width:100%;border-collapse:separate;border-spacing:0 6px}
+.row input, .row select{
+  flex:1;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #cbd5f5;
+  font-size:14px;
+}
+
+button{
+  margin-top:6px;
+  padding:9px 14px;
+  border:none;
+  border-radius:999px;
+  font-weight:800;
+  color:#fff;
+  background:var(--blue);
+  cursor:pointer;
+}
+
+.del{ background:#ef4444; }
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  font-size:13px;
+}
+
+th,td{
+  border-bottom:1px solid #e5e7eb;
+  padding:6px;
+  text-align:center;
+}
+
 th{
-  text-align:center;padding:8px;font-weight:900;color:#1e40af;font-size:.9rem
-}
-td{padding:6px}
-tr{
-  background:white;border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.04)
-}
-tr td:first-child{border-radius:10px 0 0 10px}
-tr td:last-child{border-radius:0 10px 10px 0}
-td label{font-weight:800;font-size:.9rem}
-td input{
-  width:100%;padding:9px;border:1px solid var(--line);border-radius:10px;
-  text-align:right;font-weight:800
+  background:#eef2ff;
+  color:var(--blue);
 }
 
-/* 결과 */
-.actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-.actions .btn{padding:10px 14px;border-radius:999px;border:none;font-weight:900;cursor:pointer}
-.btn-main{background:var(--blue);color:#fff}
-.btn-ghost{background:white;border:1px solid var(--line)}
-
-.result{
-  margin-top:10px;background:#f8fbff;border:1px solid var(--line);
-  border-radius:12px;padding:12px;font-weight:900
+input{
+  width:95%;
+  padding:6px;
+  border-radius:6px;
+  border:1px solid #dbeafe;
 }
-.result strong{color:#1e40af}
-.delta-pos{color:#dc2626;font-weight:900}
-.delta-neg{color:#2563eb;font-weight:900}
 
-/* 모바일 */
-@media (max-width:600px){
-  .controls{grid-template-columns:1fr}
+.auto{ background:#f9fafb; }
+
+.plus{ color:var(--red); font-weight:800; }
+.minus{ color:#2563eb; font-weight:800; }
+
+.footer{
+  margin-top:10px;
+  padding:10px;
+  background:#f3f4f6;
+  border-radius:10px;
 }
 </style>
 </head>
+
 <body>
 <div class="container">
-  <div class="card">
-    <div class="header">
-      <div>
-        <div class="app-title">토리펀</div>
-        <div class="sub">메이플키우기 최종 데미지 비교 · 스탯 효율 분석</div>
-      </div>
-      <div class="maker">스카니아9 히수토리</div>
-    </div>
 
-    <div class="update">12/1 업데이트: 공격력 계산 로직 보정 · 효율 분석 안정화</div>
-
-    <!-- 안내문 -->
-    <div class="note">
-      · 모든 % 수치는 그대로 입력합니다. 예) 크리티컬 데미지 172.3% → <span class="num">172.3</span>, 스킬데미지 58% → <span class="num">58</span><br>
-      · 증가/감소 칸에는 + / − 변화량만 입력합니다. 예) 크확 +0.7% → <span class="num">+0.7</span>, 크뎀 -5.5% → <span class="num">-5.5</span><br>
-      · 상태창 공격력 칸에는 마을에서 보이는 상태창 공격력을 그대로 입력합니다. (무기 보유효과 포함, 스킬 미포함)<br>
-      · 공격력 증가/감소 칸에는 무기보유효과/스킬 적용 전의 순수 변화량만 입력합니다.<br>
-      · 증감을 비워두면 신규 수치 = 기존 수치로 자동 복사됩니다.<br>
-      · 스탯비례 데미지는 주스탯 % 증가량에 따라 달라지므로, 착용 전/후 스탯비례%를 직접 계산하여 증감만 넣어 주세요.<br>
-      &nbsp;&nbsp;예시: 착용 전 <span class="num">400%</span> / 착용 후 <span class="num">300%</span> → 증감 칸에 <span class="num">-100</span> 입력<br>
-      · 무기 보유효과(합연산/직접 계산기로 더해야함)는 상대적 공격력 값을 이미 올려준 상태로 생각하고, 장비로 인한 순수 변화량만 입력하세요.<br>
-      · 스킬 공격력% 증가(합연산)에는 스킬/버프로 인해 합산된 공격력% 증가량을 입력해 주세요.
-    </div>
-
-    <!-- 저장/불러오기 -->
-    <div class="section-title">세팅 저장 / 불러오기</div>
-    <div class="controls">
-      <input id="saveName" placeholder="세이브 이름 (예: 주 보스 세팅)">
-      <select id="saveList"></select>
-      <div style="display:flex;gap:8px">
-        <button class="btn-blue" onclick="saveSet()">저장</button>
-        <button class="btn-white" onclick="loadSet()">불러오기</button>
-        <button class="btn-red" onclick="removeSet()">삭제</button>
-      </div>
-    </div>
-
-    <!-- 능력치 입력 -->
-    <div class="section-title">능력치 입력</div>
-    <table>
-      <thead>
-        <tr>
-          <th>항목</th>
-          <th>기존 수치</th>
-          <th>장비로 인한 순수 증가/감소</th>
-          <th>신규 수치 (자동)</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-
-    <div class="actions">
-      <button class="btn btn-main" onclick="calc()">최종 데미지 계산 + 효율 분석</button>
-      <button class="btn btn-ghost" onclick="resetAll()">전체 초기화</button>
-    </div>
-
-    <div id="result" class="result" style="display:none"></div>
+<div class="header">
+  <div>
+    <div class="title">토리펀</div>
+    <div class="sub">메이플키우기 최종 데미지 비교 · 스탯 효율 분석</div>
   </div>
+  <div class="maker">스카니아9 히수토리</div>
 </div>
 
+<div class="update">
+12/1 업데이트 · 공격력 계산 로직 보정 · 효율 분석 안정화
+</div>
+
+<div class="note">
+ · 모든 % 수치는 그대로 입력합니다. 예) 크리티컬 데미지 172.3% → <span class="num">172.3</span>, 스킬데미지 58% → <span class="num">58</span><br>
+ · <span class="hl">증가/감소</span> 칸에는 <span class="hl">+ / − 변화량</span>만 입력합니다.
+ 예) 크확 +0.7% → <span class="num">+0.7</span>,
+ 크뎀 -5.5% → <span class="num">-5.5</span><br>
+ · <span class="hl">상태창 공격력</span>은 마을 기준 그대로 입력 (무기 보유효과 포함 / 스킬 제외)<br>
+ · 공격력 증감란에는 <span class="hl">순수 변화량</span>만 입력합니다.<br>
+ · 증감을 비우면 <span class="hl">신규 = 기존 수치</span>로 자동 유지됩니다.<br>
+ · <span class="hl">스탯비례 데미지</span>는 착용 전/후 차이만 직접 계산하여 입력<br>
+ 예: 400% → 300% = <span class="num">-100</span><br>
+ · <span class="hl">무기 보유효과(합연산)</span>는 이미 반영된 값으로 보고 장비 변화량만 입력<br>
+ · <span class="hl">스킬 공격력%(합연산)</span>에는 합산된 증가량 입력
+</div>
+
+<div class="section-title">세팅 저장 / 불러오기</div>
+<div class="row">
+<input id="saveName" placeholder="세이브 이름">
+<select id="saveList"></select>
+<button onclick="saveData()">저장</button>
+<button onclick="loadData()">불러오기</button>
+<button class="del" onclick="deleteData()">삭제</button>
+</div>
+
+<div class="section-title">능력치 입력</div>
+
+<table>
+<tr><th>항목</th><th>기존</th><th>증감</th><th>신규</th></tr>
+
 <script>
-const items = [
- ["상태창 공격력(마을 기준)", "atk"],
- ["무기 보유효과(합연산, %)", "weapon"],
- ["스킬 공격력% 증가(합연산, %)", "skillAtk"],
- ["크리티컬 확률(%)", "cr"],
- ["크리티컬 데미지(%)", "cd"],
- ["스탯비례 데미지(%)", "stat"],
- ["데미지(%)", "dmg"],
- ["데미지 증폭(%)", "amp"],
- ["스킬 데미지(%)", "skill"],
- ["보스/일반 데미지(%)", "boss"],
- ["최소 데미지(%)", "min"],
- ["최대 데미지(%)", "max"],
- ["최종 데미지(%)", "final"]
+const stats = [
+ "공격력","무기보유효과","스킬공격력","크확","크뎀","스탯비례","데미지","뎀증",
+ "스킬데미지","보스","최소","최대","최종"
 ];
 
-const rows = document.getElementById("rows");
-items.forEach(([name,k])=>{
-  rows.insertAdjacentHTML("beforeend",`
-    <tr>
-      <td><label>${name}</label></td>
-      <td><input id="${k}_base" type="number" step="any"></td>
-      <td><input id="${k}_delta" type="number" step="any" oninput="sync('${k}')"></td>
-      <td><input id="${k}_new" type="number" step="any" readonly></td>
-    </tr>
-  `);
+stats.forEach(s=>{
+ document.write(`<tr>
+<td>${s}</td>
+<td><input class="old"></td>
+<td><input class="diff"></td>
+<td><input class="new auto" readonly></td>
+</tr>`);
 });
 
-function sync(k){
-  const b = parseFloat(document.getElementById(k+"_base").value||0);
-  const d = parseFloat(document.getElementById(k+"_delta").value||0);
-  document.getElementById(k+"_new").value = (b + d).toFixed(3);
-}
-items.forEach(([_,k])=>{
-  document.getElementById(k+"_base").addEventListener("input",()=>sync(k));
-});
-
-/* 계산 함수 */
-function mul(v){ return 1 + (parseFloat(v||0)/100); }
-function val(id){ return parseFloat(document.getElementById(id).value||0); }
-
-function calc(){
-  items.forEach(([_,k])=>{
-    if(document.getElementById(k+"_delta").value===""){
-      document.getElementById(k+"_new").value = (val(k+"_base")).toFixed(3);
-    }
-  });
-
-  const atk = val("atk_new");
-  const w = mul(val("weapon_new"));
-  const sa = mul(val("skillAtk_new"));
-  const dmg = mul(val("dmg_new"));
-  const amp = mul(val("amp_new"));
-  const skill = mul(val("skill_new"));
-  const boss = mul(val("boss_new"));
-  const fin = mul(val("final_new"));
-  const cr = Math.min(val("cr_new")/100, 1);
-  const cd = 1 + (val("cd_new")/100);
-  const stat = mul(val("stat_new"));
-  const min = 1 + (val("min_new")/100);
-  const max = 1 + (val("max_new")/100);
-  const avg = (min+max)/2;
-
-  const crit = cr*cd + (1-cr);
-  const total = atk * w * sa * dmg * amp * skill * boss * stat * avg * crit * fin;
-
-  const res = document.getElementById("result");
-  res.style.display="block";
-  res.innerHTML = `
-    <div><strong>최종 데미지 지수:</strong> ${total.toLocaleString(undefined,{maximumFractionDigits:2})}</div>
-  `;
-}
-
-/* 저장/불러오기 */
-function saveSet(){
-  const name = document.getElementById("saveName").value.trim();
-  if(!name) return alert("저장 이름을 입력해 주세요.");
-  const data = {};
-  items.forEach(([_,k])=>{
-    data[k] = {
-      b: document.getElementById(k+"_base").value,
-      d: document.getElementById(k+"_delta").value
-    };
-  });
-  localStorage.setItem("tori_"+name, JSON.stringify(data));
-  refresh();
-  alert("저장 완료");
-}
-function loadSet(){
-  const key = document.getElementById("saveList").value;
-  if(!key) return;
-  const data = JSON.parse(localStorage.getItem(key));
-  items.forEach(([_,k])=>{
-    document.getElementById(k+"_base").value = data[k].b||"";
-    document.getElementById(k+"_delta").value = data[k].d||"";
-    sync(k);
-  });
-}
-function removeSet(){
-  const key = document.getElementById("saveList").value;
-  if(!key) return;
-  localStorage.removeItem(key);
-  refresh();
-}
 function refresh(){
-  const s = document.getElementById("saveList");
-  s.innerHTML="";
-  for(let k in localStorage){
-    if(k.startsWith("tori_")){
-      const opt = document.createElement("option");
-      opt.value = k;
-      opt.textContent = k.replace("tori_","");
-      s.appendChild(opt);
-    }
-  }
+ document.querySelectorAll("tr").forEach(tr=>{
+   const o=tr.querySelector(".old");
+   const d=tr.querySelector(".diff");
+   const n=tr.querySelector(".new");
+   if(!o) return;
+   const base=parseFloat(o.value)||0;
+   const diff=parseFloat(d.value)||0;
+   n.value=(base+diff).toFixed(3);
+   d.className = diff>0?"diff plus":diff<0?"diff minus":"diff";
+ });
 }
-refresh();
+document.addEventListener("input",refresh);
 
-/* 초기화 */
-function resetAll(){
-  if(!confirm("모든 입력을 초기화할까요?")) return;
-  items.forEach(([_,k])=>{
-    ["base","delta","new"].forEach(s=>{
-      document.getElementById(k+"_"+s).value="";
-    });
-  });
-  document.getElementById("result").style.display="none";
+function saveData(){
+ const name=saveName.value.trim();
+ if(!name)return alert("이름 입력");
+ const data=[];
+ document.querySelectorAll(".old,.diff").forEach(i=>data.push(i.value));
+ localStorage.setItem(name,JSON.stringify(data));
+ loadList();
 }
+
+function loadList(){
+ saveList.innerHTML="";
+ Object.keys(localStorage).forEach(k=>{
+   const o=document.createElement("option");
+   o.textContent=k;
+   saveList.appendChild(o);
+ });
+}
+
+function loadData(){
+ const k=saveList.value;
+ if(!k) return;
+ const d=JSON.parse(localStorage.getItem(k));
+ let i=0;
+ document.querySelectorAll(".old,.diff").forEach(el=>{
+   el.value=d[i++];
+ });
+ refresh();
+}
+
+function deleteData(){
+ const k=saveList.value;
+ if(!k) return;
+ localStorage.removeItem(k); loadList();
+}
+
+loadList();
 </script>
+
+<div class="footer">
+※ 본 계산기는 비교/참고용입니다.
+</div>
+
+</div>
 </body>
 </html>
