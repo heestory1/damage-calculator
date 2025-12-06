@@ -236,7 +236,7 @@ input[type="number"]{
     · <span class="hl">증가/감소</span> 칸에는 <span class="hl">신규 장비로 인한 순수 + / − 변화량</span>만 입력합니다.
     예) 크확 +0.7% → <span class="num">+0.7</span>,
     크뎀 -5.5% → <span class="num">-5.5</span><br>
-    · <span class="hl">마을 상태창 공격력</span>은 마을 기준 그대로 입력 (무기 보유효과 포함 / 스킬 제외)<br>
+    · <span class="hl">마을 상태창 공격력</span>은 마을 기준 그대로 입력 (무기 착용 및 보유효과 포함 / 스킬 제외)<br>
     · 공격력 증감란에는 <span class="hl">신규 장비로 인한 순수 공격력 변화량</span>만 입력합니다.<br>
     · 증감을 비워두면 <span class="hl">신규 수치 = 기존 수치</span>로 자동 유지됩니다.<br>
     · <span class="hl">스탯비례 데미지</span>는 착용 전/후 차이만 직접 계산하여 입력<br>
@@ -331,7 +331,7 @@ input[type="number"]{
 // 스탯 목록 정의 (키 + 라벨)
 const stats = [
   { key:"atk",      label:"마을 상태창 공격력" },
-  { key:"weapon",   label:"무기 보유효과(합연산,%)" },
+  { key:"weapon",   label:"무기 착용 및 보유효과(합연산,%)" },
   { key:"skillAtk", label:"스킬 공격력(합연산,%)" },
   { key:"cr",       label:"크리티컬 확률(%)" },
   { key:"cd",       label:"크리티컬 데미지(%)" },
