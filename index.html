@@ -470,8 +470,9 @@ function calcDamage(s){
   const atkBase  = s.atk || 0;
   const weapon   = s.weapon || 0;
   const skillAtk = s.skillAtk || 0;
-  const cr   = (s.cr  || 0)/100;
-  const cd   = (s.cd  || 0)/100;
+const crRaw = s.cr / 100.0;
+const cr    = Math.min(Math.max(crRaw, 0), 1);
+  const cdMult = 1 + (s.cd / 100.0);
   const stat = s.stat || 0;
   const dmg  = s.dmg  || 0;
   const amp  = s.amp  || 0;
@@ -487,7 +488,7 @@ function calcDamage(s){
     (1 + skillAtk/100.0);
 
   const avg = (min + max)/200.0; // (최소+최대)/2 /100
-  const crit = cr * cd + (1-cr)*1.0;
+  const crit = (cr * cdMult + (1 - cr) * 1.0)
 
   return atkTerm *
     (1 + dmg/100.0) *
