@@ -370,10 +370,14 @@ function createStatRows(){
     tr.appendChild(tdOld);
 
     const tdDelta = document.createElement("td");
-    const deltaInput = document.createElement("input");
-    deltaInput.type = "number";
-    deltaInput.id = "delta_" + s.key;
-    deltaInput.step = "0.01";
+const deltaInput = document.createElement("input");
+deltaInput.type = "text";                // ✅ number → text
+deltaInput.inputMode = "decimal";        // ✅ 모바일에 숫자키패드 유도
+deltaInput.id = "delta_" + s.key;
+deltaInput.placeholder = "예: -5.5";
+deltaInput.autocomplete = "off";
+deltaInput.spellcheck = false;
+    deltaInput.pattern = "^-?\\d*(\\.\\d*)?$";
     deltaInput.addEventListener("input", ()=>{
       updateNewFromDelta(s.key);
       colorDelta(deltaInput);
@@ -458,7 +462,7 @@ function updateNewFromDelta(key){
 
 // 증감 색상 (플러스=빨강, 마이너스=파랑)
 function colorDelta(inputEl){
-  const v = parseFloat(inputEl.value);
+  const v = parseFloat((inputEl.value || "").trim());
   inputEl.classList.remove("plus","minus");
   if(isNaN(v) || v===0) return;
   if(v>0) inputEl.classList.add("plus");
