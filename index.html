@@ -562,19 +562,7 @@ function createEffRows(){
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${label}</td>
-      <td><input id="step_${s.key}" type="number" step="0.01" value="${s.key==="atk"?1000:1}"></td>if(s.key === "as"){
-  const S = baseSet.as / 100;
-  const d = step / 100;
-  const p = (num("p_custom") || 50) / 100;
-
-  const f = totalSpeedFactor(p, S, d);
-  const gain = (f - 1) * 100;
-
-  deltaCell.textContent = gain.toFixed(3) + " %";
-  normCell.textContent  = gain.toFixed(3) + " % / 1%";
-  ranking.push({ label: "공격 속도", normGain: gain });
-  return;
-}
+      <td><input id="step_${s.key}" type="number" step="0.01" value="${s.key==="atk"?1000:1}"></td>
       <td id="eff_delta_${s.key}">-</td>
       <td id="eff_norm_${s.key}">-</td>
     `;
@@ -659,6 +647,7 @@ function syncFromOld(key){
 }
 
 // 증감 입력 시: 신규 = 기존 + 증감
+// 증감 입력 시: 신규 = 기존 + 증감
 function updateNewFromDelta(key){
   const oldEl = document.getElementById("old_"+key);
   const deltaEl = document.getElementById("delta_"+key);
@@ -677,28 +666,29 @@ function updateNewFromDelta(key){
 
   if(key === "as") updateAttackSpeedSummary();
 
-  // (추가) 주스탯 증감이 바뀌면 stat 재계산
+  // (기존) 주스탯 증감이 바뀌면 stat 재계산
   if(key === "mainFixedDelta" || key === "mainPctDelta") recomputeMainStatAndStatDamage();
-}
 
-  // === 주스탯 → 스탯비례 데미지 자동 계산 ===
-if(key === "mainFixedDelta" || key === "mainPctDelta"){
-  const baseFixed = num("old_mainFixed");
-  const basePct   = num("old_mainPct");
+  // ✅ (추가) 주스탯 → 스탯비례 데미지 자동 계산 (함수 안에!)
+  if(key === "mainFixedDelta" || key === "mainPctDelta"){
+    const baseFixed = num("old_mainFixed");
+    const basePct   = num("old_mainPct");
 
-  const dFixed = num("delta_mainFixedDelta");
-  const dPct   = num("delta_mainPctDelta");
+    const dFixed = num("delta_mainFixedDelta");
+    const dPct   = num("delta_mainPctDelta");
 
-  const fixed = baseFixed + dFixed;
-  const pct   = basePct + dPct;
+    const fixed = baseFixed + dFixed;
+    const pct   = basePct + dPct;
 
-  const statVal = fixed * (1 + pct/100) * 0.01;
-  const statEl = document.getElementById("new_stat");
-  if(statEl && isFinite(statVal)){
-    statEl.value = statVal.toFixed(3);
-  }
+    const statVal = fixed * (1 + pct/100) * 0.01;
+    const statEl = document.getElementById("new_stat");
+    if(statEl && isFinite(statVal)){
+      statEl.value = statVal.toFixed(3);
+    }
+  } // ✅ if 닫기
+} // ✅ 함수 닫기
 
-// 증감 색상
+  // 증감 색상
 function colorDelta(inputEl){
   const v = parseFloat(inputEl.value);
   inputEl.classList.remove("plus","minus");
@@ -900,7 +890,20 @@ function analyzeEfficiency(silent){
     if(!silent) alert("먼저 최소한의 능력치를 입력해 주세요.");
     return;
   }
+if(s.key === "as"){
+  const S = baseSet.as / 100;
+  const d = step / 100;
+  const p = (num("p_custom") || 50) / 100;
 
+  const f = totalSpeedFactor(p, S, d);
+  const gain = (f - 1) * 100;
+
+  deltaCell.textContent = gain.toFixed(3) + " %";
+  normCell.textContent  = gain.toFixed(3) + " % / 1%";
+  ranking.push({ label: "공격 속도", normGain: gain });
+  return;
+}
+  
   const ranking = [];
 
   stats.forEach(s=>{
