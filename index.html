@@ -4,61 +4,25 @@
 <meta charset="UTF-8">
 <title>토리펀 (메이플키우기 최종데미지 계산기)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 :root{
-  --blue:#2563eb;
-  --light:#f0f5ff;
-  --line:#c7d2fe;
-  --txt:#0f172a;
-  --red:#dc2626;
+  --blue:#2563eb; --light:#f0f5ff; --line:#c7d2fe;
+  --txt:#0f172a; --red:#dc2626;
 }
-body{
-  margin:0;
-  background:#f5f7fb;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color:var(--txt);
-}
-.container{
-  max-width:900px;
-  margin:20px auto;
-  background:#fff;
-  border-radius:16px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
-  padding:18px;
-}
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-}
-.title{ font-weight:900; font-size:1.8rem; color:var(--blue); }
-.sub{ margin-top:4px; color:#374151; font-weight:600; }
-.maker{
-  background:linear-gradient(135deg,#2563eb,#60a5fa);
-  color:#fff; padding:6px 12px; border-radius:999px; font-weight:800;
-}
-.section-title{ margin-top:18px; font-weight:900; color:var(--blue); }
-table{
-  width:100%; border-collapse:collapse; margin-top:10px; font-size:13px;
-}
-th,td{
-  border-bottom:1px solid #e5e7eb; padding:6px; text-align:center;
-}
-th{ background:#eef2ff; color:var(--blue); }
-input{
-  width:95%; padding:6px; border-radius:6px; border:1px solid #dbeafe;
-}
-.auto{ background:#f9fafb; }
-.plus{ color:#dc2626; font-weight:800; }
-.minus{ color:#2563eb; font-weight:800; }
-button{
-  margin-top:6px; padding:9px 14px; border:none; border-radius:999px;
-  font-weight:800; color:#fff; background:var(--blue); cursor:pointer;
-}
-button.secondary{
-  background:#fff; color:var(--blue); border:1px solid #cbd5f5;
-}
+body{margin:0;background:#f5f7fb;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+.container{max-width:900px;margin:20px auto;background:#fff;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,.08);padding:18px;}
+.header{display:flex;justify-content:space-between;}
+.title{font-weight:900;font-size:1.8rem;color:var(--blue);}
+.sub{margin-top:4px;color:#374151;font-weight:600;}
+.maker{background:linear-gradient(135deg,#2563eb,#60a5fa);color:#fff;padding:6px 12px;border-radius:999px;font-weight:800;}
+.section-title{margin-top:18px;font-weight:900;color:var(--blue);}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
+th,td{border-bottom:1px solid #e5e7eb;padding:6px;text-align:center;}
+th{background:#eef2ff;color:var(--blue);}
+input{width:95%;padding:6px;border-radius:6px;border:1px solid #dbeafe;}
+.auto{background:#f9fafb;}
+.plus{color:#dc2626;font-weight:800;}
+.minus{color:#2563eb;font-weight:800;}
 </style>
 </head>
 
@@ -74,29 +38,17 @@ button.secondary{
 </div>
 
 <div class="section-title">능력치 입력</div>
-
 <table>
 <thead>
-<tr>
-<th>항목</th>
-<th>기존 수치</th>
-<th>증감</th>
-<th>신규 수치</th>
-</tr>
+<tr><th>항목</th><th>기존</th><th>증감</th><th>신규</th></tr>
 </thead>
 <tbody id="stats-rows"></tbody>
 </table>
 
 <div class="section-title">스탯 효율 분석</div>
-
 <table>
 <thead>
-<tr>
-<th>항목</th>
-<th>기준 증가량</th>
-<th>데미지 증가율</th>
-<th>정규화 효율</th>
-</tr>
+<tr><th>항목</th><th>기준</th><th>증가율</th><th>정규화</th></tr>
 </thead>
 <tbody id="eff-rows"></tbody>
 </table>
@@ -104,132 +56,88 @@ button.secondary{
 </div>
 
 <script>
-/* =========================
-   스탯 정의 (기존 + 최소 추가)
-========================= */
-const stats = [
-  { key:"atk", label:"마을 상태창 공격력" },
-  { key:"weapon", label:"무기 착용 및 보유효과(%)" },
-  { key:"skillAtk", label:"스킬 공격력(%)" },
-  { key:"cr", label:"크리티컬 확률(%)" },
-  { key:"cd", label:"크리티컬 데미지(%)" },
-  { key:"as", label:"공격 속도(%)" },
-  { key:"stat", label:"스탯비례 데미지(%)" },
-
-  /* 추가 */
-  { key:"mainFixed", label:"고정 주스탯" },
-  { key:"mainPct", label:"주스탯%(%)" },
-
-  { key:"dmg", label:"데미지(%)" },
-  { key:"amp", label:"데미지 증폭(%)" },
-  { key:"skill", label:"스킬 데미지(%)" },
-  { key:"boss", label:"보스/일반 데미지(%)" },
-  { key:"final", label:"최종 데미지(%)" },
+const stats=[
+ {key:"atk",label:"공격력"},
+ {key:"cr",label:"크확"},
+ {key:"cd",label:"크뎀"},
+ {key:"as",label:"공속"},
+ {key:"stat",label:"스탯비례"},
+ {key:"mainFixed",label:"고정 주스탯"},
+ {key:"mainPct",label:"주스탯%"},
+ {key:"dmg",label:"데미지"},
+ {key:"boss",label:"보스"},
+ {key:"final",label:"최종 데미지"},
 ];
 
-/* 효율 분석 제외 */
-function isEffStat(s){
-  return !["weapon","skillAtk","mainFixed"].includes(s.key);
-}
+function isEffStat(s){ return s.key!=="mainFixed"; }
 
-/* =========================
-   행 생성
-========================= */
 function createRows(){
-  const body = document.getElementById("stats-rows");
-  const eff  = document.getElementById("eff-rows");
+ const body=document.getElementById("stats-rows");
+ const eff=document.getElementById("eff-rows");
 
-  stats.forEach(s=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${s.label}</td>
-      <td><input id="old_${s.key}" ${s.key==="mainFixed"?"readonly class='auto'":""}></td>
-      <td><input id="delta_${s.key}"></td>
-      <td><input id="new_${s.key}" readonly class="auto"></td>
-    `;
-    body.appendChild(tr);
-  });
+ stats.forEach(s=>{
+  body.insertAdjacentHTML("beforeend",`
+   <tr>
+    <td>${s.label}</td>
+    <td><input id="old_${s.key}"></td>
+    <td><input id="delta_${s.key}"></td>
+    <td><input id="new_${s.key}" class="auto" readonly></td>
+   </tr>`);
+ });
 
-  stats.forEach(s=>{
-    if(!isEffStat(s)) return;
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${s.key==="as"?"공격 속도(1%)":s.label}</td>
-      <td>1</td>
-      <td id="eff_delta_${s.key}">-</td>
-      <td id="eff_norm_${s.key}">-</td>
-    `;
-    eff.appendChild(tr);
-  });
+ stats.forEach(s=>{
+  if(!isEffStat(s))return;
+  eff.insertAdjacentHTML("beforeend",`
+   <tr>
+    <td>${s.key==="as"?"공속(1%)":s.label}</td>
+    <td>1</td>
+    <td id="eff_delta_${s.key}">-</td>
+    <td id="eff_norm_${s.key}">-</td>
+   </tr>`);
+ });
 }
 
-/* =========================
-   공속 DPS 공식 (p=0.5)
-========================= */
 function speedGain(S,d){
-  const cap=1.5;
-  const eff=d*(cap-S)/cap;
-  return (1+(S+eff))/(1+S);
+ const cap=1.5;
+ return (1+(S+d*(cap-S)/cap))/(1+S);
 }
 
-/* =========================
-   자동 계산
-========================= */
 function recompute(){
-  stats.forEach(s=>{
-    const oldEl   = document.getElementById("old_" + s.key);
-    const deltaEl = document.getElementById("delta_" + s.key);
-    const newEl   = document.getElementById("new_" + s.key);
+ stats.forEach(s=>{
+  const o=parseFloat(document.getElementById("old_"+s.key).value)||0;
+  const d=parseFloat(document.getElementById("delta_"+s.key).value)||0;
+  document.getElementById("new_"+s.key).value=(o+d).toFixed(3);
+ });
 
-    const o = parseFloat(oldEl?.value);
-    const d = parseFloat(deltaEl?.value);
+ const fixed=parseFloat(document.getElementById("new_mainFixed").value)||0;
+ const pct=parseFloat(document.getElementById("new_mainPct").value)||0;
+ document.getElementById("new_stat").value=(fixed*(1+pct/100)*0.01).toFixed(3);
 
-    const ov = isNaN(o) ? 0 : o;
-    const dv = isNaN(d) ? 0 : d;
-
-    if(newEl){
-      newEl.value = (ov + dv).toFixed(3);
-    }
-  });
-
-  /* 스탯비례 데미지 자동 계산 */
-  const fixedEl = document.getElementById("new_mainFixed");
-  const pctEl   = document.getElementById("new_mainPct");
-  const statEl  = document.getElementById("new_stat");
-
-  const fixed = parseFloat(fixedEl?.value) || 0;
-  const pct   = parseFloat(pctEl?.value) || 0;
-
-  if(statEl){
-    statEl.value = (fixed * (1 + pct/100) * 0.01).toFixed(3);
-  }
-
-  analyze();
+ analyze();
 }
-/* =========================
-   효율 분석
-========================= */
+
 function analyze(){
-  const base={};
-  stats.forEach(s=>base[s.key]=parseFloat(new_${s.key}.value)||0);
+ const base={};
+ stats.forEach(s=>{
+  base[s.key]=parseFloat(document.getElementById("new_"+s.key).value)||0;
+ });
 
-  stats.forEach(s=>{
-    if(!isEffStat(s)) return;
-    let gain=0;
-
-    if(s.key==="as"){
-      gain=(speedGain(base.as/100,0.01)-1)*100;
-    }else{
-      gain=((base[s.key]+1)/(base[s.key]||1)-1)*100;
-    }
-
-    eff_delta_${s.key}.textContent=gain.toFixed(3)+"%";
-    eff_norm_${s.key}.textContent=gain.toFixed(3)+"% / 1%";
-  });
+ stats.forEach(s=>{
+  if(!isEffStat(s))return;
+  let gain=0;
+  if(s.key==="as"){
+   gain=(speedGain(base.as/100,0.01)-1)*100;
+  }else{
+   gain=((base[s.key]+1)/(base[s.key]||1)-1)*100;
+  }
+  document.getElementById("eff_delta_"+s.key).textContent=gain.toFixed(3)+"%";
+  document.getElementById("eff_norm_"+s.key).textContent=gain.toFixed(3)+"% / 1%";
+ });
 }
 
 document.addEventListener("input",recompute);
 createRows();
 </script>
+
 </body>
 </html>
