@@ -583,7 +583,6 @@ function createEffRows(){
   `;
   tbody.appendChild(tr2);
 }
-}
 
 function num(id){
   const el = document.getElementById(id);
@@ -1037,7 +1036,41 @@ function analyzeEfficiency(silent){
     deltaCell.textContent = totalGain.toFixed(3) + " %";
     normCell.textContent  = normGain.toFixed(3) + " % / 1%";
 
-    ranking.push({ label:"주스탯%(합연산,%)", no
+  // ✅ (추가) 주스탯%(합연산,%) 1% 상승 효율 (가상 행)
+  (function(){
+    const stepEl = document.getElementById("step_mainPctEff");
+    const deltaCell = document.getElementById("eff_delta_mainPctEff");
+    const normCell  = document.getElementById("eff_norm_mainPctEff");
+    if(!stepEl || !deltaCell || !normCell) return;
+
+    const step = parseFloat(stepEl.value);
+    if(isNaN(step) || step<=0){
+      deltaCell.textContent = "-";
+      normCell.textContent = "-";
+      return;
+    }
+
+    const fixed = (baseSet.mainFixed || 0);
+    const pct   = (baseSet.mainPct   || 0);
+
+    const testSet = Object.assign({}, baseSet);
+    testSet.stat = fixed * (1 + (pct + step)/100.0) * 0.01;
+
+    const newDamage2 = calcDamage(testSet);
+    if(!newDamage2 || !isFinite(newDamage2)){
+      deltaCell.textContent = "-";
+      normCell.textContent = "-";
+      return;
+    }
+
+    const totalGain = (newDamage2/baseDamage - 1) * 100;
+    const normGain  = totalGain / step;
+
+    deltaCell.textContent = totalGain.toFixed(3) + " %";
+    normCell.textContent  = normGain.toFixed(3) + " % / 1%";
+
+    ranking.push({ label:"주스탯%(합연산,%)", normGain });
+  })();
 
   ranking.sort((a,b)=>b.normGain - a.normGain);
 
