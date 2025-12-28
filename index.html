@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* === 기존 CSS 전부 유지 === */
 :root{
   --blue:#2563eb;
   --light:#f0f5ff;
@@ -32,85 +31,33 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  gap:10px;
 }
-.title{
-  font-weight:900;
-  font-size:1.8rem;
-  color:var(--blue);
-}
-.sub{
-  margin-top:4px;
-  color:#374151;
-  font-weight:600;
-}
+.title{ font-weight:900; font-size:1.8rem; color:var(--blue); }
+.sub{ margin-top:4px; color:#374151; font-weight:600; }
 .maker{
   background:linear-gradient(135deg,#2563eb,#60a5fa);
-  color:#fff;
-  padding:6px 12px;
-  border-radius:999px;
-  font-weight:800;
-  font-size:.95rem;
+  color:#fff; padding:6px 12px; border-radius:999px; font-weight:800;
 }
-.note{
-  background:var(--light);
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:12px;
-  line-height:1.65;
-  margin-top:10px;
-  font-size:.9rem;
-}
-.section-title{
-  margin-top:18px;
-  font-weight:900;
-  color:var(--blue);
-}
+.section-title{ margin-top:18px; font-weight:900; color:var(--blue); }
 table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-  font-size:13px;
+  width:100%; border-collapse:collapse; margin-top:10px; font-size:13px;
 }
 th,td{
-  border-bottom:1px solid #e5e7eb;
-  padding:6px;
-  text-align:center;
+  border-bottom:1px solid #e5e7eb; padding:6px; text-align:center;
 }
-th{
-  background:#eef2ff;
-  color:var(--blue);
-}
+th{ background:#eef2ff; color:var(--blue); }
 input{
-  width:95%;
-  padding:6px;
-  border-radius:6px;
-  border:1px solid #dbeafe;
+  width:95%; padding:6px; border-radius:6px; border:1px solid #dbeafe;
 }
 .auto{ background:#f9fafb; }
 .plus{ color:#dc2626; font-weight:800; }
 .minus{ color:#2563eb; font-weight:800; }
 button{
-  margin-top:6px;
-  padding:9px 14px;
-  border:none;
-  border-radius:999px;
-  font-weight:800;
-  color:#fff;
-  background:var(--blue);
-  cursor:pointer;
+  margin-top:6px; padding:9px 14px; border:none; border-radius:999px;
+  font-weight:800; color:#fff; background:var(--blue); cursor:pointer;
 }
 button.secondary{
-  background:#fff;
-  color:var(--blue);
-  border:1px solid #cbd5f5;
-}
-.result-box{
-  margin-top:10px;
-  padding:10px;
-  border-radius:12px;
-  background:#f8fafc;
-  border:1px solid #e2e8f0;
+  background:#fff; color:var(--blue); border:1px solid #cbd5f5;
 }
 </style>
 </head>
@@ -158,7 +105,7 @@ button.secondary{
 
 <script>
 /* =========================
-   스탯 정의 (최소 수정)
+   스탯 정의 (기존 + 최소 추가)
 ========================= */
 const stats = [
   { key:"atk", label:"마을 상태창 공격력" },
@@ -168,8 +115,11 @@ const stats = [
   { key:"cd", label:"크리티컬 데미지(%)" },
   { key:"as", label:"공격 속도(%)" },
   { key:"stat", label:"스탯비례 데미지(%)" },
-  { key:"mainFixed", label:"고정 주스탯 (자동)" },
-  { key:"mainPct", label:"주스탯%(%)" },   // ✅ 효율 분석 포함
+
+  /* 추가 */
+  { key:"mainFixed", label:"고정 주스탯" },
+  { key:"mainPct", label:"주스탯%(%)" },
+
   { key:"dmg", label:"데미지(%)" },
   { key:"amp", label:"데미지 증폭(%)" },
   { key:"skill", label:"스킬 데미지(%)" },
@@ -177,13 +127,9 @@ const stats = [
   { key:"final", label:"최종 데미지(%)" },
 ];
 
-/* =========================
-   효율 분석 대상
-========================= */
+/* 효율 분석 제외 */
 function isEffStat(s){
-  return s.key !== "weapon" &&
-         s.key !== "skillAtk" &&
-         s.key !== "mainFixed";
+  return !["weapon","skillAtk","mainFixed"].includes(s.key);
 }
 
 /* =========================
@@ -197,7 +143,7 @@ function createRows(){
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td>${s.label}</td>
-      <td><input id="old_${s.key}" ${s.key==="mainFixed"||s.key==="mainPct"?"readonly class='auto'":""}></td>
+      <td><input id="old_${s.key}" ${s.key==="mainFixed"?"readonly class='auto'":""}></td>
       <td><input id="delta_${s.key}"></td>
       <td><input id="new_${s.key}" readonly class="auto"></td>
     `;
@@ -218,14 +164,30 @@ function createRows(){
 }
 
 /* =========================
-   공속 효율 계산
+   공속 DPS 공식 (p=0.5)
 ========================= */
-function speedGain(S,d,p){
+function speedGain(S,d){
   const cap=1.5;
   const eff=d*(cap-S)/cap;
-  const before=1+S;
-  const after=1+(S+eff);
-  return 1+p*((after/before)-1);
+  return (1+(S+eff))/(1+S);
+}
+
+/* =========================
+   자동 계산
+========================= */
+function recompute(){
+  stats.forEach(s=>{
+    const o=parseFloat(old_${s.key}.value)||0;
+    const d=parseFloat(delta_${s.key}.value)||0;
+    new_${s.key}.value=(o+d).toFixed(3);
+  });
+
+  /* 스탯비례 자동 계산 */
+  const fixed=parseFloat(new_mainFixed.value)||0;
+  const pct=parseFloat(new_mainPct.value)||0;
+  new_stat.value=(fixed*(1+pct/100)*0.01).toFixed(3);
+
+  analyze();
 }
 
 /* =========================
@@ -233,32 +195,24 @@ function speedGain(S,d,p){
 ========================= */
 function analyze(){
   const base={};
-  stats.forEach(s=>{
-    base[s.key]=parseFloat(document.getElementById("new_"+s.key).value)||0;
-  });
+  stats.forEach(s=>base[s.key]=parseFloat(new_${s.key}.value)||0);
 
   stats.forEach(s=>{
     if(!isEffStat(s)) return;
-
     let gain=0;
 
     if(s.key==="as"){
-      const S=base.as/100;
-      const p=0.5;
-      gain=(speedGain(S,0.01,p)-1)*100;
+      gain=(speedGain(base.as/100,0.01)-1)*100;
     }else{
-      const before=base[s.key];
-      const after=before+1;
-      base[s.key]=after;
-      gain=(after/(before||1)-1)*100;
-      base[s.key]=before;
+      gain=((base[s.key]+1)/(base[s.key]||1)-1)*100;
     }
 
-    document.getElementById("eff_delta_"+s.key).textContent=gain.toFixed(3)+"%";
-    document.getElementById("eff_norm_"+s.key).textContent=gain.toFixed(3)+"% / 1%";
+    eff_delta_${s.key}.textContent=gain.toFixed(3)+"%";
+    eff_norm_${s.key}.textContent=gain.toFixed(3)+"% / 1%";
   });
 }
 
+document.addEventListener("input",recompute);
 createRows();
 </script>
 </body>
