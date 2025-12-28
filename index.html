@@ -393,9 +393,9 @@ const stats = [
 
   /* ====== (추가) 스탯비례 데미지 보정 입력(스탯비례 바로 아래) ====== */
   { key:"mainFixed", label:"고정 주스탯 (자동 추정)" },
-  { key:"mainFixedDelta", label:"고정 주스탯 증감" },
+  { key:"mainFixed", label:"고정 주스탯 증감 (입력불가)" },
   { key:"mainPct",   label:"현재 주스탯%(%)" },
-  { key:"mainPctDelta", label:"주스탯% 증감(%)" },
+  { key:"mainPercent", label:"주스탯% 증감(%) (입력불가)" },
   /* ====== (추가 끝) ====== */
 
   { key:"dmg",      label:"데미지(%)" },
@@ -424,21 +424,25 @@ function createStatRows(){
   stats.forEach(s=>{
     const tr = document.createElement("tr");
 
+    /* 항목 라벨 */
     const tdLabel = document.createElement("td");
     tdLabel.textContent = s.label;
     tr.appendChild(tdLabel);
 
+    /* 기존 수치 */
     const tdOld = document.createElement("td");
     const oldInput = document.createElement("input");
     oldInput.type = "number";
     oldInput.id = "old_" + s.key;
     oldInput.step = "0.01";
 
-    // (추가) 일부 항목 old 입력 제어
-    if(s.key === "mainFixed"){
+    /* ===== 기존 수치 입력 막을 항목 ===== */
+    if(s.key === "mainFixed" || s.key === "mainPercent"){
       oldInput.readOnly = true;
       oldInput.classList.add("auto");
+      oldInput.placeholder = "입력불가";
     }
+    /* ===== 끝 ===== */
 
     oldInput.addEventListener("input", ()=> syncFromOld(s.key));
     tdOld.appendChild(oldInput);
