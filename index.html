@@ -78,10 +78,7 @@ body{
   color:#0f172a;
 }
 
-/* 파란 강조 */
 .hl{ color:var(--blue); font-weight:900; }
-
-/* 숫자 강조 */
 .num{ color:var(--red); font-weight:900; }
 
 .section-title{
@@ -130,8 +127,6 @@ button.danger{
 button:hover{
   filter:brightness(1.05);
 }
-
-.del{ background:#ef4444; }
 
 table{
   width:100%;
@@ -215,7 +210,7 @@ input[type="text"]{
   display:none;
 }
 
-/* ====== (추가) 증감칸 ± 버튼 스타일 ====== */
+/* 증감칸 ± 버튼 */
 .delta-wrap{
   display:flex;
   gap:6px;
@@ -234,12 +229,9 @@ input[type="text"]{
   line-height:1;
   flex:0 0 auto;
 }
-.sign-btn:hover{
-  filter:brightness(1.05);
-}
-/* ====== (추가 끝) ====== */
+.sign-btn:hover{ filter:brightness(1.05); }
 
-/* ====== (추가) 공속 p 입력줄 ====== */
+/* 공속 p 입력줄 */
 .p-wrap{
   display:flex;
   gap:8px;
@@ -252,10 +244,7 @@ input[type="text"]{
   font-weight:700;
   white-space:nowrap;
 }
-.p-input{
-  width:110px !important;
-}
-/* ====== (추가 끝) ====== */
+.p-input{ width:110px !important; }
 </style>
 </head>
 
@@ -277,8 +266,7 @@ input[type="text"]{
   <div class="note">
     · 모든 % 수치는 그대로 입력합니다. 예) 크리티컬 데미지 172.3% → <span class="num">172.3</span>, 스킬데미지 58% → <span class="num">58</span><br>
     · <span class="hl">증가/감소</span> 칸에는 <span class="hl">신규 장비로 인한 순수 + / − 변화량</span>만 입력합니다.
-    예) 크확 +0.7% → <span class="num">+0.7</span>,
-    크뎀 -5.5% → <span class="num">-5.5</span><br>
+    예) 크확 +0.7% → <span class="num">+0.7</span>, 크뎀 -5.5% → <span class="num">-5.5</span><br>
     · <span class="hl">마을 상태창 공격력</span>은 마을 기준 그대로 입력 (무기 착용 및 보유효과 포함 / 스킬 제외)<br>
     · 공격력 증감란에는 <span class="hl">신규 장비로 인한 순수 공격력 변화량</span>만 입력합니다.<br>
     · 증감을 비워두면 <span class="hl">신규 수치 = 기존 수치</span>로 자동 유지됩니다.<br>
@@ -338,7 +326,6 @@ input[type="text"]{
       <div class="result-item-value" id="boostDamage">-</div>
     </div>
 
-    <!-- 공속 반영 DPS 비교 -->
     <div style="grid-column:1 / -1;">
       <div class="result-item-label" style="margin-top:6px;">공격 속도 반영 DPS 증가율 (기본기술 비중 p)</div>
       <div class="result-item-value" id="asSummary">-</div>
@@ -379,9 +366,6 @@ input[type="text"]{
 </div>
 
 <script>
-// 스탯 목록 정의 (키 + 라벨)
-// (추가) 공격 속도(as)를 크리티컬 데미지 바로 다음에 넣음
-// (변경) 스탯비례 데미지(stat) 바로 아래에 고정주스탯/주스탯% 입력 항목 추가
 const stats = [
   { key:"atk",      label:"마을 상태창 공격력" },
   { key:"weapon",   label:"무기 착용 및 보유효과(합연산,%)" },
@@ -391,12 +375,10 @@ const stats = [
   { key:"as",       label:"공격 속도(%)" },
   { key:"stat",     label:"스탯비례 데미지(%)" },
 
-  /* ====== (추가) 스탯비례 데미지 보정 입력(스탯비례 바로 아래) ====== */
   { key:"mainFixed", label:"고정 주스탯 (자동 추정)" },
   { key:"mainFixedDelta", label:"고정 주스탯 증감" },
   { key:"mainPct",   label:"현재 주스탯%(합연산,%)" },
   { key:"mainPctDelta", label:"주스탯% 증감(%)" },
-  /* ====== (추가 끝) ====== */
 
   { key:"dmg",      label:"데미지(%)" },
   { key:"amp",      label:"데미지 증폭(%)" },
@@ -407,17 +389,16 @@ const stats = [
   { key:"final",    label:"최종 데미지(%)" },
 ];
 
-// 효율표에 표시할 스탯(무기/스킬 공격력/공속/주스탯 보정항목 제외)
 function isEffStat(s){
   return s.key !== "weapon" &&
          s.key !== "skillAtk" &&
-         s.key !== "stat" &&        // ✅ 스탯비례 데미지 제거
+         s.key !== "stat" &&
          s.key !== "mainFixed" &&
          s.key !== "mainFixedDelta" &&
-         s.key !== "mainPct" &&     // ✅ 현재 주스탯% 제거
+         s.key !== "mainPct" &&
          s.key !== "mainPctDelta";
 }
-// 능력치 입력 행 생성
+
 function createStatRows(){
   const tbody = document.getElementById("stats-rows");
   stats.forEach(s=>{
@@ -433,27 +414,26 @@ function createStatRows(){
     oldInput.id = "old_" + s.key;
     oldInput.step = "0.01";
 
-    // === 입력 제어 패치 ===
-if(s.key === "mainFixed"){
-  oldInput.readOnly = true;
-  oldInput.classList.add("auto");
-  oldInput.placeholder = "자동 계산";
-}
-if(s.key === "stat"){
-  oldInput.readOnly = true;
-  oldInput.classList.add("auto");
-  oldInput.placeholder = "자동 계산";
-}
-if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
-  oldInput.readOnly = true;
-  oldInput.classList.add("auto");
-  oldInput.placeholder = "입력 안함";
-}
+    if(s.key === "mainFixed"){
+      oldInput.readOnly = true;
+      oldInput.classList.add("auto");
+      oldInput.placeholder = "자동 계산";
+    }
+    if(s.key === "stat"){
+      oldInput.readOnly = true;
+      oldInput.classList.add("auto");
+      oldInput.placeholder = "자동 계산";
+    }
+    if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
+      oldInput.readOnly = true;
+      oldInput.classList.add("auto");
+      oldInput.placeholder = "입력 안함";
+    }
+
     oldInput.addEventListener("input", ()=> syncFromOld(s.key));
     tdOld.appendChild(oldInput);
     tr.appendChild(tdOld);
 
-    /* ====== (증감칸: ± 버튼 + text 입력) ====== */
     const tdDelta = document.createElement("td");
 
     const wrap = document.createElement("div");
@@ -472,7 +452,6 @@ if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
     deltaInput.autocomplete = "off";
     deltaInput.spellcheck = false;
 
-    // (변경) 스탯비례 데미지(stat)의 '증감'은 사용 안 함
     if(s.key === "stat"){
       deltaInput.value = "";
       deltaInput.placeholder = "사용 안함 (아래 주스탯 입력)";
@@ -482,9 +461,6 @@ if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
       signBtn.style.opacity = "0.4";
       signBtn.style.cursor = "not-allowed";
     }
-
-    // (추가) mainFixed는 old가 자동이므로 delta만 쓰게: old는 readOnly, delta는 사용
-    // (추가) mainFixedDelta / mainPctDelta는 old 칸은 굳이 안 쓰지만 구조 통일 위해 유지
 
     deltaInput.addEventListener("input", ()=>{
       updateNewFromDelta(s.key);
@@ -496,7 +472,6 @@ if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
       if(raw === "") return;
       const n = parseFloat(raw);
       if(isNaN(n)) return;
-
       deltaInput.value = (-n).toString();
       updateNewFromDelta(s.key);
       colorDelta(deltaInput);
@@ -505,7 +480,6 @@ if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
     wrap.appendChild(signBtn);
     wrap.appendChild(deltaInput);
 
-    // 공속(as) 아래 p 입력칸
     if(s.key === "as"){
       const pWrap = document.createElement("div");
       pWrap.className = "p-wrap";
@@ -533,14 +507,12 @@ if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
       const holder = document.createElement("div");
       holder.appendChild(wrap);
       holder.appendChild(pWrap);
-
       tdDelta.appendChild(holder);
     }else{
       tdDelta.appendChild(wrap);
     }
 
     tr.appendChild(tdDelta);
-    /* ====== (증감칸 끝) ====== */
 
     const tdNew = document.createElement("td");
     const newInput = document.createElement("input");
@@ -556,9 +528,9 @@ if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
   });
 }
 
-// 효율 행 생성
 function createEffRows(){
   const tbody = document.getElementById("eff-rows");
+
   stats.forEach(s=>{
     if(!isEffStat(s)) return;
 
@@ -573,7 +545,7 @@ function createEffRows(){
     `;
     tbody.appendChild(tr);
   });
-    // ✅ (추가) 주스탯% 효율 행(가상 스탯)
+
   const tr2 = document.createElement("tr");
   tr2.innerHTML = `
     <td>주스탯%(합연산,%)</td>
@@ -591,15 +563,9 @@ function num(id){
   return isNaN(v)?0:v;
 }
 
-// ====== (추가) 주스탯 기반 스탯비례 데미지 자동 계산 ======
-// stat(%) = fixedMainStat * (1 + mainPct/100) * 0.01
-// fixedMainStat는 현재 stat(%)와 현재 mainPct로 역산:
-// fixed = (stat% * 100) / (1 + mainPct/100)
 function recomputeMainStatAndStatDamage(){
   const statOld = parseFloat((document.getElementById("old_stat")?.value || "").trim());
   const mainPctOld = parseFloat((document.getElementById("old_mainPct")?.value || "").trim());
-
-  // 역산 불가하면 종료
   if(isNaN(statOld) || isNaN(mainPctOld)) return;
 
   const baseFactor = 1 + mainPctOld/100.0;
@@ -607,38 +573,26 @@ function recomputeMainStatAndStatDamage(){
 
   const fixedBase = (statOld * 100.0) / baseFactor;
 
-  // old_mainFixed 채우기(자동)
   const oldFixedEl = document.getElementById("old_mainFixed");
-  if(oldFixedEl){
-    oldFixedEl.value = fixedBase.toFixed(3);
-  }
+  if(oldFixedEl) oldFixedEl.value = fixedBase.toFixed(3);
 
-  // delta 값들
   const dFixed = parseFloat((document.getElementById("delta_mainFixedDelta")?.value || "").trim());
   const dPct   = parseFloat((document.getElementById("delta_mainPctDelta")?.value || "").trim());
 
   const fixedNew = fixedBase + (isNaN(dFixed)?0:dFixed);
   const pctNew   = mainPctOld + (isNaN(dPct)?0:dPct);
 
-  // new_mainFixed / new_mainPct 자동
   const newFixedEl = document.getElementById("new_mainFixed");
-  if(newFixedEl) newFixedEl.value = fixedBase.toFixed(3); // mainFixed는 "현재 추정값"이라 new도 동일 표시(혼동 방지)
+  if(newFixedEl) newFixedEl.value = fixedBase.toFixed(3);
 
   const newMainPctEl = document.getElementById("new_mainPct");
   if(newMainPctEl) newMainPctEl.value = mainPctOld.toFixed(3);
 
-  // mainFixedDelta / mainPctDelta의 new는 기존 로직(기존+증감) 형태로 유지되므로 따로 만지지 않음
-
-  // 핵심: new_stat(스탯비례 데미지%)를 계산해서 반영
   const statNew = fixedNew * (1 + pctNew/100.0) * 0.01;
-
   const newStatEl = document.getElementById("new_stat");
-  if(newStatEl && isFinite(statNew)){
-    newStatEl.value = statNew.toFixed(3);
-  }
+  if(newStatEl && isFinite(statNew)) newStatEl.value = statNew.toFixed(3);
 }
 
-// 기존값 입력 시: 증감이 비어있으면 신규 = 기존
 function syncFromOld(key){
   const oldEl = document.getElementById("old_"+key);
   const deltaEl = document.getElementById("delta_"+key);
@@ -655,13 +609,9 @@ function syncFromOld(key){
   }
 
   if(key === "as") updateAttackSpeedSummary();
-
-  // (추가) 주스탯 관련 입력이 바뀌면 stat 재계산
   if(key === "stat" || key === "mainPct") recomputeMainStatAndStatDamage();
 }
 
-// 증감 입력 시: 신규 = 기존 + 증감
-// 증감 입력 시: 신규 = 기존 + 증감
 function updateNewFromDelta(key){
   const oldEl = document.getElementById("old_"+key);
   const deltaEl = document.getElementById("delta_"+key);
@@ -679,30 +629,22 @@ function updateNewFromDelta(key){
   }
 
   if(key === "as") updateAttackSpeedSummary();
-
-  // (기존) 주스탯 증감이 바뀌면 stat 재계산
   if(key === "mainFixedDelta" || key === "mainPctDelta") recomputeMainStatAndStatDamage();
 
-  // ✅ (추가) 주스탯 → 스탯비례 데미지 자동 계산 (함수 안에!)
   if(key === "mainFixedDelta" || key === "mainPctDelta"){
     const baseFixed = num("old_mainFixed");
     const basePct   = num("old_mainPct");
-
     const dFixed = num("delta_mainFixedDelta");
     const dPct   = num("delta_mainPctDelta");
-
     const fixed = baseFixed + dFixed;
     const pct   = basePct + dPct;
 
     const statVal = fixed * (1 + pct/100) * 0.01;
     const statEl = document.getElementById("new_stat");
-    if(statEl && isFinite(statVal)){
-      statEl.value = statVal.toFixed(3);
-    }
-  } // ✅ if 닫기
-} // ✅ 함수 닫기
+    if(statEl && isFinite(statVal)) statEl.value = statVal.toFixed(3);
+  }
+}
 
-  // 증감 색상
 function colorDelta(inputEl){
   const v = parseFloat(inputEl.value);
   inputEl.classList.remove("plus","minus");
@@ -711,7 +653,6 @@ function colorDelta(inputEl){
   else inputEl.classList.add("minus");
 }
 
-// ====== 공속 적용 함수들 ======
 function clamp01(x){ return Math.min(1, Math.max(0, x)); }
 function clamp(x, lo, hi){ return Math.min(hi, Math.max(lo, x)); }
 
@@ -762,14 +703,15 @@ function updateAttackSpeedSummary(){
   asScenEl.textContent = lines.join("  |  ");
 }
 
-// 데미지 계산식 (공속/주스탯 보정항목은 여기 직접 미반영)
 function calcDamage(s){
   const atkBase  = s.atk || 0;
   const weapon   = s.weapon || 0;
   const skillAtk = s.skillAtk || 0;
+
   const crRaw = s.cr / 100.0;
   const cr    = Math.min(Math.max(crRaw, 0), 1);
   const cdMult = 1 + (s.cd / 100.0);
+
   const stat = s.stat || 0;
   const dmg  = s.dmg  || 0;
   const amp  = s.amp  || 0;
@@ -785,7 +727,7 @@ function calcDamage(s){
     (1 + skillAtk/100.0);
 
   const avg = (min + max)/200.0;
-  const crit = (cr * cdMult + (1 - cr) * 1.0)
+  const crit = (cr * cdMult + (1 - cr) * 1.0);
 
   return atkTerm *
     (1 + dmg/100.0) *
@@ -798,7 +740,6 @@ function calcDamage(s){
     (1 + fin/100.0);
 }
 
-// 세트 수집
 function collectSet(prefix){
   const set = {};
   stats.forEach(s=>{
@@ -807,7 +748,6 @@ function collectSet(prefix){
   return set;
 }
 
-// 효율 분석용 기준 세트
 function getBaseForEfficiency(){
   const base = {};
   stats.forEach(s=>{
@@ -824,15 +764,12 @@ function getBaseForEfficiency(){
   return base;
 }
 
-// 최종 데미지 계산 + 효율 분석
 function calculate(){
-  // (추가) 계산 직전에 stat 자동 재계산 한번 보장
   recomputeMainStatAndStatDamage();
 
   const oldSet = collectSet("old_");
   const newSet = collectSet("new_");
 
-  // 신규 비어있으면 기존 복사
   stats.forEach(s=>{
     const newEl = document.getElementById("new_"+s.key);
     const oldEl = document.getElementById("old_"+s.key);
@@ -868,7 +805,6 @@ function calculate(){
     else diffSpan.className = "";
   }
 
-  // 기준 증가량 모두 더한 세트
   const boosted = Object.assign({}, newSet);
   stats.forEach(s=>{
     const stepEl = document.getElementById("step_"+s.key);
@@ -881,13 +817,13 @@ function calculate(){
           const factor = (1 + weapon/100.0)*(1 + skillAtk/100.0);
           boosted.atk += v * factor;
         }else{
-          // (주의) 주스탯 보정항목은 boosted에 영향 주면 의미 없으니 그냥 스킵
           if(s.key==="mainFixed"||s.key==="mainFixedDelta"||s.key==="mainPct"||s.key==="mainPctDelta") return;
           boosted[s.key] += v;
         }
       }
     }
   });
+
   const boostedDamage = calcDamage(boosted);
   if(!boostedDamage || !isFinite(boostedDamage)) boostSpan.textContent = "-";
   else boostSpan.textContent = boostedDamage.toFixed(2);
@@ -896,9 +832,7 @@ function calculate(){
   analyzeEfficiency(true);
 }
 
-// 효율 계산
 function analyzeEfficiency(silent){
-  // 효율 계산 전에 stat 값 최신화(주스탯 반영)
   recomputeMainStatAndStatDamage();
 
   const baseSet = getBaseForEfficiency();
@@ -926,10 +860,10 @@ function analyzeEfficiency(silent){
       return;
     }
 
-    // === 공속(as) 특수 처리: calcDamage에 공속이 직접 안 들어가므로 별도 계산 ===
+    // 공속은 calcDamage에 직접 반영 안되므로 별도 계산
     if(s.key === "as"){
-      const S = (baseSet.as || 0) / 100.0;   // 현재 공속(비율)
-      const d = step / 100.0;                // +step% 공속 변화량
+      const S = (baseSet.as || 0) / 100.0;
+      const d = step / 100.0;
       const p = (num("p_custom") || 50) / 100.0;
 
       const f = totalSpeedFactor(p, S, d);
@@ -941,32 +875,6 @@ function analyzeEfficiency(silent){
       return;
     }
 
-    // === 주스탯%(mainPct) 특수 처리: calcDamage는 mainPct가 아니라 stat만 씀 ===
-    if(s.key === "mainPct"){
-      const fixed = (baseSet.mainFixed || 0);      // 고정 주스탯(자동 추정값)
-      const pct   = (baseSet.mainPct || 0);        // 현재 주스탯%
-      const newStat = fixed * (1 + (pct + step)/100.0) * 0.01;
-
-      const testSet = Object.assign({}, baseSet);
-      testSet.stat = newStat; // 핵심: stat만 갱신
-
-      const newDamage = calcDamage(testSet);
-      if(!newDamage || !isFinite(newDamage)){
-        if(deltaCell) deltaCell.textContent = "-";
-        if(normCell)  normCell.textContent  = "-";
-        return;
-      }
-
-      const totalGain = (newDamage/baseDamage - 1)*100;
-      const normGain = totalGain/step;
-
-      if(deltaCell) deltaCell.textContent = totalGain.toFixed(3) + " %";
-      if(normCell)  normCell.textContent  = normGain.toFixed(3) + " % / 1%";
-      ranking.push({ label: "현재 주스탯%(합연산,%)", normGain });
-      return;
-    }
-
-    // === 일반 스탯 처리 ===
     const testSet = Object.assign({}, baseSet);
 
     if(s.key === "atk"){
@@ -1001,42 +909,7 @@ function analyzeEfficiency(silent){
     }
   });
 
-  // ✅ (추가) 주스탯%(합연산,%) 1% 상승 효율 (가상 행)
-  (function(){
-    const stepEl = document.getElementById("step_mainPctEff");
-    const deltaCell = document.getElementById("eff_delta_mainPctEff");
-    const normCell  = document.getElementById("eff_norm_mainPctEff");
-    if(!stepEl || !deltaCell || !normCell) return;
-
-    const step = parseFloat(stepEl.value);
-    if(isNaN(step) || step<=0){
-      deltaCell.textContent = "-";
-      normCell.textContent = "-";
-      return;
-    }
-
-    // baseSet.stat은 이미 주스탯 기반으로 계산된 값이 들어가 있어야 함
-    // (그래서 함수 맨 위에서 recomputeMainStatAndStatDamage() 호출하는 게 중요)
-    const fixed = (baseSet.mainFixed || 0);
-    const pct   = (baseSet.mainPct   || 0);
-
-    const testSet = Object.assign({}, baseSet);
-    testSet.stat = fixed * (1 + (pct + step)/100.0) * 0.01;
-
-    const newDamage = calcDamage(testSet);
-    if(!newDamage || !isFinite(newDamage)){
-      deltaCell.textContent = "-";
-      normCell.textContent = "-";
-      return;
-    }
-
-    const totalGain = (newDamage/baseDamage - 1) * 100;
-    const normGain  = totalGain / step;
-
-    deltaCell.textContent = totalGain.toFixed(3) + " %";
-    normCell.textContent  = normGain.toFixed(3) + " % / 1%";
-
-  // ✅ (추가) 주스탯%(합연산,%) 1% 상승 효율 (가상 행)
+  // ✅ 주스탯%(합연산,%) 가상행
   (function(){
     const stepEl = document.getElementById("step_mainPctEff");
     const deltaCell = document.getElementById("eff_delta_mainPctEff");
@@ -1093,7 +966,6 @@ function analyzeEfficiency(silent){
   summary.innerHTML = html;
 }
 
-// 전체 초기화
 function resetValues(){
   stats.forEach(s=>{
     document.getElementById("old_"+s.key).value = "";
@@ -1107,12 +979,15 @@ function resetValues(){
     if(dc) dc.textContent = "-";
     if(nc) nc.textContent = "-";
   });
+
   document.getElementById("oldDamage").textContent="-";
   document.getElementById("newDamage").textContent="-";
   document.getElementById("boostDamage").textContent="-";
+
   const diffSpan = document.getElementById("diffPercent");
   diffSpan.textContent="-";
   diffSpan.className="";
+
   const summary = document.getElementById("eff-summary");
   summary.style.display="none";
   summary.innerHTML="";
@@ -1123,7 +998,7 @@ function resetValues(){
   if(asScenEl) asScenEl.textContent = "-";
 }
 
-// 세팅 저장 / 불러오기 / 삭제
+// 저장/불러오기/삭제 (당신 원본 그대로 유지)
 function saveData(){
   const name = document.getElementById("saveName").value.trim();
   if(!name){ alert("세이브 이름을 입력하세요."); return; }
@@ -1179,7 +1054,6 @@ function loadData(){
     document.getElementById("p_custom").value = data["_p_custom"].value || "50";
   }
 
-  // (추가) 불러오기 후 주스탯 기반 stat 재계산
   recomputeMainStatAndStatDamage();
   updateAttackSpeedSummary();
 
