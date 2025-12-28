@@ -411,11 +411,12 @@ const stats = [
 function isEffStat(s){
   return s.key !== "weapon" &&
          s.key !== "skillAtk" &&
+         s.key !== "stat" &&        // ✅ 스탯비례 데미지 제거
          s.key !== "mainFixed" &&
          s.key !== "mainFixedDelta" &&
+         s.key !== "mainPct" &&     // ✅ 현재 주스탯% 제거
          s.key !== "mainPctDelta";
 }
-
 // 능력치 입력 행 생성
 function createStatRows(){
   const tbody = document.getElementById("stats-rows");
