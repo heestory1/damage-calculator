@@ -177,19 +177,35 @@ function speedGain(S,d){
 ========================= */
 function recompute(){
   stats.forEach(s=>{
-    const o=parseFloat(old_${s.key}.value)||0;
-    const d=parseFloat(delta_${s.key}.value)||0;
-    new_${s.key}.value=(o+d).toFixed(3);
+    const oldEl   = document.getElementById("old_" + s.key);
+    const deltaEl = document.getElementById("delta_" + s.key);
+    const newEl   = document.getElementById("new_" + s.key);
+
+    const o = parseFloat(oldEl?.value);
+    const d = parseFloat(deltaEl?.value);
+
+    const ov = isNaN(o) ? 0 : o;
+    const dv = isNaN(d) ? 0 : d;
+
+    if(newEl){
+      newEl.value = (ov + dv).toFixed(3);
+    }
   });
 
-  /* 스탯비례 자동 계산 */
-  const fixed=parseFloat(new_mainFixed.value)||0;
-  const pct=parseFloat(new_mainPct.value)||0;
-  new_stat.value=(fixed*(1+pct/100)*0.01).toFixed(3);
+  /* 스탯비례 데미지 자동 계산 */
+  const fixedEl = document.getElementById("new_mainFixed");
+  const pctEl   = document.getElementById("new_mainPct");
+  const statEl  = document.getElementById("new_stat");
+
+  const fixed = parseFloat(fixedEl?.value) || 0;
+  const pct   = parseFloat(pctEl?.value) || 0;
+
+  if(statEl){
+    statEl.value = (fixed * (1 + pct/100) * 0.01).toFixed(3);
+  }
 
   analyze();
 }
-
 /* =========================
    효율 분석
 ========================= */
