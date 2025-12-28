@@ -394,7 +394,7 @@ const stats = [
   /* ====== (추가) 스탯비례 데미지 보정 입력(스탯비례 바로 아래) ====== */
   { key:"mainFixed", label:"고정 주스탯 (자동 추정)" },
   { key:"mainFixedDelta", label:"고정 주스탯 증감" },
-  { key:"mainPct",   label:"현재 주스탯%(%)" },
+  { key:"mainPct",   label:"현재 주스탯%(합연산,%)" },
   { key:"mainPctDelta", label:"주스탯% 증감(%)" },
   /* ====== (추가 끝) ====== */
 
@@ -443,7 +443,11 @@ if(s.key === "stat"){
   oldInput.classList.add("auto");
   oldInput.placeholder = "자동 계산";
 }
-
+if(s.key === "mainFixedDelta" || s.key === "mainPctDelta"){
+  oldInput.readOnly = true;
+  oldInput.classList.add("auto");
+  oldInput.placeholder = "입력 안함";
+}
     oldInput.addEventListener("input", ()=> syncFromOld(s.key));
     tdOld.appendChild(oldInput);
     tr.appendChild(tdOld);
