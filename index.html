@@ -412,9 +412,9 @@ function isEffStat(s){
   return s.key !== "weapon" &&
          s.key !== "skillAtk" &&
          s.key !== "mainFixed" &&
-         s.key !== "mainFixedDelta";
+         s.key !== "mainFixedDelta" &&
+         s.key !== "mainPctDelta";
 }
-
 
 // 능력치 입력 행 생성
 function createStatRows(){
@@ -888,26 +888,16 @@ function calculate(){
 
 // 효율 계산
 function analyzeEfficiency(silent){
+  // 효율 계산 전에 stat 값 최신화(주스탯 반영)
+  recomputeMainStatAndStatDamage();
+
   const baseSet = getBaseForEfficiency();
   const baseDamage = calcDamage(baseSet);
   if(!baseDamage || !isFinite(baseDamage)){
     if(!silent) alert("먼저 최소한의 능력치를 입력해 주세요.");
     return;
   }
-if(s.key === "as"){
-  const S = baseSet.as / 100;
-  const d = step / 100;
-  const p = (num("p_custom") || 50) / 100;
 
-  const f = totalSpeedFactor(p, S, d);
-  const gain = (f - 1) * 100;
-
-  deltaCell.textContent = gain.toFixed(3) + " %";
-  normCell.textContent  = gain.toFixed(3) + " % / 1%";
-  ranking.push({ label: "공격 속도", normGain: gain });
-  return;
-}
-  
   const ranking = [];
 
   stats.forEach(s=>{
@@ -915,6 +905,7 @@ if(s.key === "as"){
 
     const stepInput = document.getElementById("step_"+s.key);
     if(!stepInput) return;
+
     let step = parseFloat(stepInput.value);
     const deltaCell = document.getElementById("eff_delta_"+s.key);
     const normCell  = document.getElementById("eff_norm_"+s.key);
@@ -925,6 +916,47 @@ if(s.key === "as"){
       return;
     }
 
+    // === 공속(as) 특수 처리: calcDamage에 공속이 직접 안 들어가므로 별도 계산 ===
+    if(s.key === "as"){
+      const S = (baseSet.as || 0) / 100.0;   // 현재 공속(비율)
+      const d = step / 100.0;                // +step% 공속 변화량
+      const p = (num("p_custom") || 50) / 100.0;
+
+      const f = totalSpeedFactor(p, S, d);
+      const gain = (f - 1) * 100;
+
+      if(deltaCell) deltaCell.textContent = gain.toFixed(3) + " %";
+      if(normCell)  normCell.textContent  = (gain/step).toFixed(3) + " % / 1%";
+      ranking.push({ label: "공격 속도(%)", normGain: gain/step });
+      return;
+    }
+
+    // === 주스탯%(mainPct) 특수 처리: calcDamage는 mainPct가 아니라 stat만 씀 ===
+    if(s.key === "mainPct"){
+      const fixed = (baseSet.mainFixed || 0);      // 고정 주스탯(자동 추정값)
+      const pct   = (baseSet.mainPct || 0);        // 현재 주스탯%
+      const newStat = fixed * (1 + (pct + step)/100.0) * 0.01;
+
+      const testSet = Object.assign({}, baseSet);
+      testSet.stat = newStat; // 핵심: stat만 갱신
+
+      const newDamage = calcDamage(testSet);
+      if(!newDamage || !isFinite(newDamage)){
+        if(deltaCell) deltaCell.textContent = "-";
+        if(normCell)  normCell.textContent  = "-";
+        return;
+      }
+
+      const totalGain = (newDamage/baseDamage - 1)*100;
+      const normGain = totalGain/step;
+
+      if(deltaCell) deltaCell.textContent = totalGain.toFixed(3) + " %";
+      if(normCell)  normCell.textContent  = normGain.toFixed(3) + " % / 1%";
+      ranking.push({ label: "현재 주스탯%(합연산,%)", normGain });
+      return;
+    }
+
+    // === 일반 스탯 처리 ===
     const testSet = Object.assign({}, baseSet);
 
     if(s.key === "atk"){
@@ -938,30 +970,32 @@ if(s.key === "as"){
 
     const newDamage = calcDamage(testSet);
     if(!newDamage || !isFinite(newDamage)){
-      deltaCell.textContent = "-";
-      normCell.textContent  = "-";
+      if(deltaCell) deltaCell.textContent = "-";
+      if(normCell)  normCell.textContent  = "-";
       return;
     }
 
     const totalGain = (newDamage/baseDamage - 1)*100;
-    let normGain;
 
     if(s.key==="atk"){
       const factorNorm = step/1000.0;
-      normGain = totalGain/factorNorm;
-      normCell.textContent = normGain.toFixed(3)+" % / 1000";
+      const normGain = totalGain/factorNorm;
+      if(deltaCell) deltaCell.textContent = totalGain.toFixed(3)+" %";
+      if(normCell)  normCell.textContent  = normGain.toFixed(3)+" % / 1000";
+      ranking.push({ label: "장비로 변경되는 공격력", normGain });
     }else{
-      normGain = totalGain/step;
-      normCell.textContent = normGain.toFixed(3)+" % / 1%";
+      const normGain = totalGain/step;
+      if(deltaCell) deltaCell.textContent = totalGain.toFixed(3)+" %";
+      if(normCell)  normCell.textContent  = normGain.toFixed(3)+" % / 1%";
+      ranking.push({ label: s.label, normGain });
     }
-
-    deltaCell.textContent = totalGain.toFixed(3)+" %";
-    ranking.push({label: (s.key==="atk"?"장비로 변경되는 공격력":s.label), normGain});
   });
 
   ranking.sort((a,b)=>b.normGain - a.normGain);
 
   const summary = document.getElementById("eff-summary");
+  if(!summary) return;
+
   if(ranking.length===0){
     summary.style.display="none";
     summary.innerHTML="";
@@ -971,7 +1005,7 @@ if(s.key === "as"){
   let html = "<b>현재 입력 기준 스탯 효율 순위</b> (값이 높을수록 1단위당 효율 ↑)<br>";
   ranking.forEach((r,idx)=>{
     const rank = idx+1;
-    const cls = rank===1?"eff-best":"";
+    const cls = rank===1 ? "eff-best" : "";
     html += `<span class="${cls}">${rank}위: ${r.label} — ${r.normGain.toFixed(3)} %</span><br>`;
   });
   summary.style.display="block";
