@@ -1134,8 +1134,7 @@ function loadData(){
 
   const data = JSON.parse(raw);
 
-  // ✅ 효율표 기준값(step)은 항상 고정 기본값으로 강제 세팅
-  // (저장된 값이 있더라도 무시)
+  // ✅ 1) 기준값(step)은 저장값 무시하고 항상 고정
   stats.forEach(s=>{
     const stepEl = document.getElementById("step_"+s.key);
     if(stepEl) stepEl.value = getDefaultStep(s.key);
@@ -1147,7 +1146,7 @@ function loadData(){
   const fixedEl = document.getElementById("step_mainFixedEff");
   if(fixedEl) fixedEl.value = 600;
 
-  // ✅ 능력치(old/delta)만 불러오기
+  // ✅ 2) 불러오기에서는 능력치(old/delta)만 적용
   stats.forEach(s=>{
     const item = data[s.key] || {};
     document.getElementById("old_"+s.key).value   = item.old   || "";
@@ -1157,7 +1156,7 @@ function loadData(){
     syncFromOld(s.key);
   });
 
-  // ✅ p 값 불러오기
+  // ✅ 3) p_custom은 저장값 사용(원하면 이것도 고정 가능)
   if(data["_p_custom"] && document.getElementById("p_custom")){
     document.getElementById("p_custom").value = data["_p_custom"].value || "50";
   }
