@@ -554,6 +554,17 @@ function createEffRows(){
     <td id="eff_norm_mainPctEff">-</td>
   `;
   tbody.appendChild(tr2);
+
+
+    // ✅ 고정 주스탯 효율 행(가상 스탯) - 기본 500
+  const tr3 = document.createElement("tr");
+  tr3.innerHTML = `
+    <td>고정 주스탯</td>
+    <td><input id="step_mainFixedEff" type="number" step="0.01" value="500"></td>
+    <td id="eff_delta_mainFixedEff">-</td>
+    <td id="eff_norm_mainFixedEff">-</td>
+  `;
+  tbody.appendChild(tr3);
 }
 
 function num(id){
@@ -1034,6 +1045,18 @@ function resetValues(){
   const asScenEl = document.getElementById("asScenarios");
   if(asSummaryEl) asSummaryEl.textContent = "-";
   if(asScenEl) asScenEl.textContent = "-";
+
+  // ✅ 가상행 초기화
+  const a1 = document.getElementById("eff_delta_mainPctEff");
+  const a2 = document.getElementById("eff_norm_mainPctEff");
+  if(a1) a1.textContent = "-";
+  if(a2) a2.textContent = "-";
+
+  const b1 = document.getElementById("eff_delta_mainFixedEff");
+  const b2 = document.getElementById("eff_norm_mainFixedEff");
+  if(b1) b1.textContent = "-";
+  if(b2) b2.textContent = "-";
+
 }
 
 // 저장/불러오기/삭제 (당신 원본 그대로 유지)
@@ -1055,6 +1078,9 @@ function saveData(){
   localStorage.setItem("tori_"+name, JSON.stringify(data));
   loadList();
   alert("저장 완료: "+name);
+    
+  data["_step_mainPctEff"]   = { value: document.getElementById("step_mainPctEff")?.value || "1" };
+  data["_step_mainFixedEff"] = { value: document.getElementById("step_mainFixedEff")?.value || "500" };
 }
 
 function loadList(){
@@ -1096,6 +1122,14 @@ function loadData(){
   updateAttackSpeedSummary();
 
   alert("불러오기 완료: "+key.replace("tori_",""));
+
+    if(data["_step_mainPctEff"] && document.getElementById("step_mainPctEff")){
+    document.getElementById("step_mainPctEff").value = data["_step_mainPctEff"].value || "1";
+  }
+  if(data["_step_mainFixedEff"] && document.getElementById("step_mainFixedEff")){
+    document.getElementById("step_mainFixedEff").value = data["_step_mainFixedEff"].value || "500";
+  }
+
 }
 
 function deleteData(){
