@@ -347,7 +347,7 @@ input[type="text"]{
         <th>항목</th>
         <th>기준 증가량<br><span style="font-size:0.75rem;color:#6b7280;">(% 또는 장비 공격력)</span></th>
         <th>데미지 증가율<br><span style="font-size:0.75rem;color:#6b7280;">(해당 증가량 전체 기준)</span></th>
-        <th>정규화 효율<br><span style="font-size:0.75rem;color:#6b7280;">장비 공격력: 1000당 / 나머지: 1%당</span></th>
+        <th>정규화 효율<br><span style="font-size:0.75rem;color:#6b7280;">장비 공격력: 1000당, 주스탯 500당 / 나머지: 1%당</span></th>
       </tr>
     </thead>
     <tbody id="eff-rows"></tbody>
@@ -944,6 +944,44 @@ function analyzeEfficiency(silent){
 
     ranking.push({ label:"주스탯%(합연산,%)", normGain });
   })();
+
+  // ⬇⬇⬇ 여기 바로 아래에 추가 ⬇⬇⬇
+
+// ✅ 고정 주스탯 가상행 (500 기준)
+(function(){
+  const stepEl = document.getElementById("step_mainFixedEff");
+  const deltaCell = document.getElementById("eff_delta_mainFixedEff");
+  const normCell  = document.getElementById("eff_norm_mainFixedEff");
+  if(!stepEl || !deltaCell || !normCell) return;
+
+  const step = parseFloat(stepEl.value);
+  if(isNaN(step) || step<=0){
+    deltaCell.textContent = "-";
+    normCell.textContent = "-";
+    return;
+  }
+
+  const fixed = (baseSet.mainFixed || 0);
+  const pct   = (baseSet.mainPct   || 0);
+
+  const testSet = Object.assign({}, baseSet);
+  testSet.stat = (fixed + step) * (1 + pct/100.0) * 0.01;
+
+  const newDamage = calcDamage(testSet);
+  if(!newDamage || !isFinite(newDamage)){
+    deltaCell.textContent = "-";
+    normCell.textContent = "-";
+    return;
+  }
+
+  const totalGain = (newDamage/baseDamage - 1) * 100;
+  const normGain  = totalGain / (step/500.0);
+
+  deltaCell.textContent = totalGain.toFixed(3) + " %";
+  normCell.textContent  = normGain.toFixed(3) + " % / 500";
+
+  ranking.push({ label:"고정 주스탯", normGain });
+})();
 
   ranking.sort((a,b)=>b.normGain - a.normGain);
 
