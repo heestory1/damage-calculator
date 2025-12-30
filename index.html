@@ -1134,46 +1134,30 @@ function loadData(){
 
   const data = JSON.parse(raw);
 
-  // ✅ 가상행 step 보정 (1/빈값/비정상 -> 기본값)
+  // ✅ 효율표 기준값(step)은 항상 고정 기본값으로 강제 세팅
+  // (저장된 값이 있더라도 무시)
+  stats.forEach(s=>{
+    const stepEl = document.getElementById("step_"+s.key);
+    if(stepEl) stepEl.value = getDefaultStep(s.key);
+  });
+
   const pctEl = document.getElementById("step_mainPctEff");
-  if(pctEl){
-    const v = parseFloat(data["_step_mainPctEff"]?.value);
-    pctEl.value = (isFinite(v) && v > 0 && v !== 1) ? v : 12;
-  }
+  if(pctEl) pctEl.value = 12;
 
   const fixedEl = document.getElementById("step_mainFixedEff");
-  if(fixedEl){
-    const v = parseFloat(data["_step_mainFixedEff"]?.value);
-    fixedEl.value = (isFinite(v) && v > 0 && v !== 1) ? v : 600;
-  }
+  if(fixedEl) fixedEl.value = 600;
 
-  // ✅ 본문 로드
+  // ✅ 능력치(old/delta)만 불러오기
   stats.forEach(s=>{
     const item = data[s.key] || {};
-
     document.getElementById("old_"+s.key).value   = item.old   || "";
     document.getElementById("delta_"+s.key).value = item.delta || "";
-
-    // ✅ 효율표 step 로드 + 구세이브(1) 마이그레이션
-    const stepEl = document.getElementById("step_"+s.key);
-    if(stepEl){
-      const saved = (item.step ?? "").toString().trim();
-      const savedNum = parseFloat(saved);
-
-      const shouldIgnoreOld =
-        saved === "" ||
-        !isFinite(savedNum) ||
-        savedNum <= 0 ||
-        (savedNum === 1 && ["cr","as","dmg","min","max","boss","amp","cd","final","skill","atk"].includes(s.key));
-
-      stepEl.value = shouldIgnoreOld ? getDefaultStep(s.key) : savedNum;
-    }
 
     colorDelta(document.getElementById("delta_"+s.key));
     syncFromOld(s.key);
   });
 
-  // ✅ p 값
+  // ✅ p 값 불러오기
   if(data["_p_custom"] && document.getElementById("p_custom")){
     document.getElementById("p_custom").value = data["_p_custom"].value || "50";
   }
