@@ -1031,26 +1031,108 @@ function analyzeEfficiency(silent){
   ranking.push({ label:"고정 주스탯", normGain });
 })();
 
-  ranking.sort((a,b)=>b.normGain - a.normGain);
+ranking.sort((a,b)=>b.normGain - a.normGain);
 
-  const summary = document.getElementById("eff-summary");
-  if(!summary) return;
+const summary = document.getElementById("eff-summary");
+if(!summary) return;
 
-  if(ranking.length===0){
-    summary.style.display="none";
-    summary.innerHTML="";
-    return;
-  }
-
-  let html = "<b>현재 입력 기준 스탯 효율 순위</b> (값이 높을수록 1단위당 효율 ↑)<br>";
-  ranking.forEach((r,idx)=>{
-    const rank = idx+1;
-    const cls = rank===1 ? "eff-best" : "";
-    html += `<span class="${cls}">${rank}위: ${r.label} — ${r.normGain.toFixed(3)} %</span><br>`;
-  });
-  summary.style.display="block";
-  summary.innerHTML = html;
+if(ranking.length===0){
+  summary.style.display="none";
+  summary.innerHTML="";
+  return;
 }
+
+const top = ranking[0].normGain || 1;
+
+// ✅ 툴팁 스타일(한 번만 넣기)
+if(!document.getElementById("eff-tooltip-style")){
+  const st = document.createElement("style");
+  st.id = "eff-tooltip-style";
+  st.textContent = `
+    .eff-bar-wrap{ position:relative; width:100%; }
+    .eff-bar-bg{
+      height:10px;
+      background:#e5e7eb;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .eff-bar-fill{ height:100%; border-radius:999px; }
+    .eff-tooltip{
+      position:absolute;
+      top:-30px;
+      left:0;
+      transform:translateX(-10%);
+      background:rgba(15,23,42,.95);
+      color:#fff;
+      font-size:12px;
+      font-weight:800;
+      padding:4px 8px;
+      border-radius:8px;
+      white-space:nowrap;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .12s ease;
+      z-index:10;
+    }
+    .eff-tooltip:after{
+      content:"";
+      position:absolute;
+      left:14px;
+      bottom:-6px;
+      border-width:6px 6px 0 6px;
+      border-style:solid;
+      border-color:rgba(15,23,42,.95) transparent transparent transparent;
+    }
+    .eff-bar-wrap:hover .eff-tooltip{ opacity:1; }
+  `;
+  document.head.appendChild(st);
+}
+
+let html = `
+  <b>현재 입력 기준 스탯 효율 순위</b>
+  <div style="margin-top:8px;
+              display:grid;
+              grid-template-columns:auto 1fr;
+              row-gap:8px;
+              column-gap:12px;
+              align-items:center;
+              font-size:.8rem;">
+`;
+
+ranking.forEach((r, idx)=>{
+  const rank = idx + 1;
+
+  // ✅ 상대 효율(1위 대비 %)
+  const rel = (r.normGain / top) * 100;            // 1위 대비 %
+  const relClamped = Math.max(0, Math.min(100, rel));
+
+  // ✅ 막대 길이
+  const pct = relClamped;
+
+  // ✅ 툴팁 텍스트: 1위 대비 몇 %인지
+  const tip = `1위 대비 ${relClamped.toFixed(1)}%`;
+
+  const cls = rank === 1 ? "eff-best" : "";
+  const color = rank === 1 ? "#1d4ed8" : (rank <= 3 ? "#3b82f6" : "#60a5fa");
+
+  html += `
+    <div>
+      <span class="${cls}">${rank}위: ${r.label}</span>
+      <span style="color:#64748b;"> — ${r.normGain.toFixed(3)}%</span>
+    </div>
+
+    <div class="eff-bar-wrap">
+      <div class="eff-tooltip">${tip}</div>
+      <div class="eff-bar-bg">
+        <div class="eff-bar-fill" style="width:${pct.toFixed(1)}%; background:${color};"></div>
+      </div>
+    </div>
+  `;
+});
+
+html += `</div>`;
+summary.style.display="block";
+summary.innerHTML = html;
 
 function resetValues(){
   stats.forEach(s=>{
