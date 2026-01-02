@@ -351,7 +351,9 @@ input[type="text"]{
 
 <div class="eff-note" id="authHint" style="margin-top:6px;">
   · 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.
-</div>
+  </div>
+  
+  <div class="eff-note" id="importQuotaHint" style="margin-top:6px; display:none;"></div>
 
 
   <div class="update">
@@ -376,26 +378,23 @@ input[type="text"]{
   </div>
   
   <div id="premium-save">
-    <div class="section-title">세팅 저장 / 불러오기</div>
-    
-    <div class="row">
-  <input id="saveName" placeholder="세이브 이름">
-  <select id="saveList" style="max-width:180px;"></select>
+  <div class="section-title">세팅 저장 / 불러오기</div>
 
-  <button id="btnSave" onclick="saveData()">저장</button>
-  <button id="btnLoad" class="secondary" onclick="loadData()">불러오기</button>
-  <button id="btnDelete" class="danger" onclick="deleteData()">삭제</button>
+  <div class="row">
+    <input id="saveName" placeholder="세이브 이름">
+    <select id="saveList" style="max-width:180px;"></select>
 
-  <!-- ✅ 추가: TXT 내보내기/가져오기 -->
-  <button id="btnExportTxt" class="secondary" onclick="exportSelectedToTxt()">TXT 내보내기</button>
-  <button id="btnImportTxt" class="secondary" onclick="openImportTxt()">TXT 가져오기</button>
+    <button id="btnSave" onclick="saveData()">저장</button>
+    <button id="btnLoad" class="secondary" onclick="loadData()">불러오기</button>
+    <button id="btnDelete" class="danger" onclick="deleteData()">삭제</button>
+
+    <!-- ✅ TXT 내보내기/가져오기 -->
+    <button id="btnExportTxt" class="secondary" onclick="exportSelectedToTxt()">TXT 내보내기</button>
+    <button id="btnImportTxt" class="secondary" onclick="openImportTxt()">TXT 가져오기</button>
+  </div>
+  <!-- ✅ 숨김 파일 입력 -->
+  <input id="importTxtFile" type="file" accept=".txt,.json,text/plain,application/json" style="display:none" />
 </div>
-
-<div class="eff-note" id="importQuotaHint" style="margin-top:6px; display:none;"></div>
-
-<!-- ✅ 추가: 숨김 파일 입력 -->
-<input id="importTxtFile" type="file" accept=".txt,.json,text/plain,application/json" style="display:none" />
-
 
   <div class="section-title">능력치 입력</div>
 
@@ -451,7 +450,7 @@ input[type="text"]{
     · 효율 계산은 <span class="hl">현재 입력된 능력치</span> 기준입니다. 신규 수치가 있으면 그 값을, 없으면 기존 수치를 사용합니다.<br>
     · 기본 기준은 모든 %스탯 <span class="hl">+1%</span>, 장비로 변경되는 공격력은 <span class="hl">+1000</span>입니다. 아래에서 항목별 기준 증가량을 직접 바꿀 수 있습니다.<br>
     · 장비 공격력 효율은 <span class="hl">기준 증가량 × 무기 (장착+보유)효과 × (1 + 스킬 공격력)</span>이 반영된 값 기준으로 계산됩니다.<br>
-    · 효율분석표의 기준값은 <span class="hl">레전더리 잠재옵션과 레전더리 어빌리티 옵션</span>을 기준으로 하였습니다.<span class="h1">(수정가능)</span><br>
+    · 효율분석표의 기준값은 <span class="hl">레전더리 잠재옵션과 레전더리 어빌리티 옵션</span>을 기준으로 하였습니다.<span class="hl">(수정가능)</span><br>
   </div>
 
 <div id="premium-eff-table">
@@ -601,6 +600,7 @@ async function verifyCode(){
 function logoutPremium(){
   clearPremiumToken();
   applyPremiumUI();
+  updateImportQuotaHint(); // ← ✅ 여기
   try{ analyzeEfficiency(true); }catch(e){}
 }
   
@@ -1742,19 +1742,28 @@ function loadList(){
 }
 
 function loadData(){
-    // ✅ 미인증이면 하루 3회 제한
-  if(!requireImportQuotaOrPremium()) return;
   const sel = document.getElementById("saveList");
-  const key = sel.value;
-  if(!key){ alert("불러올 세이브를 선택하세요."); return; }
+  const key = sel?.value || "";
+
+  // ✅ 먼저 유효성 체크 (카운트 소모 전에)
+  if(!key){
+    alert("불러올 세이브를 선택하세요.");
+    return;
+  }
+
+  const raw = localStorage.getItem(key);
+  if(!raw){
+    alert("저장된 데이터가 없습니다.");
+    return;
+  }
+
+  // ✅ 미인증이면 여기서 하루 3회 제한 소모
+  if(!requireImportQuotaOrPremium()) return;
 
   // ✅ 불러온 이름을 세이브 이름 칸에도 자동 입력
   const loadedName = key.replace("tori_","");
   const saveNameEl = document.getElementById("saveName");
   if(saveNameEl) saveNameEl.value = loadedName;
-
-  const raw = localStorage.getItem(key);
-  if(!raw){ alert("저장된 데이터가 없습니다."); return; }
 
   const data = JSON.parse(raw);
 
@@ -1780,7 +1789,7 @@ function loadData(){
     syncFromOld(s.key);
   });
 
-  // ✅ 3) p_custom은 저장값 사용(원하면 이것도 고정 가능)
+  // ✅ 3) p_custom은 저장값 사용
   if(data["_p_custom"] && document.getElementById("p_custom")){
     document.getElementById("p_custom").value = data["_p_custom"].value || "50";
   }
@@ -1788,7 +1797,7 @@ function loadData(){
   recomputeMainStatAndStatDamage();
   updateAttackSpeedSummary();
 
-  alert("불러오기 완료: " + key.replace("tori_",""));
+  alert("불러오기 완료: " + loadedName);
 }
 
 
