@@ -511,7 +511,7 @@ input[type="text"]{
   const DEV_FORCE_PREMIUM = true; // ✅ 테스트 끝나면 false
 
 function isPremium(){
-  if(DEV_FORCE_PREMIUM) return true; // ✅ DEV 스위치
+  if(DEV_FORCE_PREMIUM) return true;
 
   const token = readPremiumToken();
   if(!isTokenValid(token)){
