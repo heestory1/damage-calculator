@@ -57,16 +57,23 @@ body{
   font-weight:800;
   font-size:.95rem;
   box-shadow:0 3px 8px rgba(37,99,235,.3);
+  white-space:nowrap; /* 줄바꿈 방지 */
+}
+
+/* ✅ 여기부터는 .maker 밖에 있어야 함 */
 .header-right{
   display:flex;
   align-items:center;
   gap:10px;
+  justify-content:flex-end;
+  flex-wrap:nowrap;
 }
 
 .premium-auth-header{
   display:flex;
   align-items:center;
   gap:6px;
+  flex-wrap:nowrap;
 }
 
 .premium-auth-header input{
@@ -80,10 +87,12 @@ body{
 }
 
 .auth-btn{
-  margin-top:0;          /* 기존 button의 margin-top:6px 무력화 */
+  margin-top:0;      /* 기존 button margin-top 무력화 */
   padding:7px 12px;
   height:32px;
+  line-height:1;
 }
+
   
 
 .update{
