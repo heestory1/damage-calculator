@@ -562,15 +562,6 @@ function isTokenValid(token){
   return true;
 }
 
-function isPremium(){
-  const token = readPremiumToken();
-  if(!isTokenValid(token)){
-    clearPremiumToken();
-    return false;
-  }
-  return true;
-}
-
 const AUTH_API_BASE = "https://torifun-auth.yhs7894-c0c.workers.dev";
 
   
@@ -615,7 +606,11 @@ function logoutPremium(){
   clearPremiumToken();
   applyPremiumUI();
   updateImportQuotaHint(); // ← ✅ 여기
-  try{ analyzeEfficiency(true); }catch(e){}
+
+  alert("인증 해제 완료");  // ✅ 원하는 문구
+
+  // ❌ 로그아웃 시 효율 재계산하지 않음 (필수입력 팝업 방지)
+  // try{ analyzeEfficiency(true); }catch(e){}
 }
   
 function applyPremiumUI(){
