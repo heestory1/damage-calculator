@@ -736,38 +736,49 @@ function calcDamage(s){
   const weapon   = s.weapon || 0;
   const skillAtk = s.skillAtk || 0;
 
-  const crRaw = s.cr / 100.0;
+  const crRaw = (s.cr || 0) / 100.0;
   const cr    = Math.min(Math.max(crRaw, 0), 1);
-  const cdMult = 1 + (s.cd / 100.0);
+  const cdMult = 1 + ((s.cd || 0) / 100.0);
 
-  const stat = s.stat || 0;
-  const dmg  = s.dmg  || 0;
-  const amp  = s.amp  || 0;
-  const boss = s.boss || 0;
-  const min  = s.min  || 0;
-  const max  = s.max  || 0;
+  const stat  = s.stat  || 0;
+  const dmg   = s.dmg   || 0;
+  const amp   = s.amp   || 0;
+  const boss  = s.boss  || 0;
+  const min   = s.min   || 0;
+  const max   = s.max   || 0;
   const skill = s.skill || 0;
-  const fin  = s.final || 0;
+  const fin   = s.final || 0;
+
+  // ✅ 기본기 비중 p(%) 읽기 (없으면 50%)
+  const p_custom_raw = parseFloat(document.getElementById("p_custom")?.value);
+  const p = isNaN(p_custom_raw) ? 0.5 : Math.min(1, Math.max(0, p_custom_raw/100.0));
+  const q = 1 - p;
 
   const atkTerm =
     atkBase *
     (1 + weapon/100.0) *
     (1 + skillAtk/100.0);
 
-  const avg = (min + max)/200.0;
+  const avg  = (min + max)/200.0;
   const crit = (cr * cdMult + (1 - cr) * 1.0);
 
-  return atkTerm *
+  // ✅ 스킬데미지 제외한 "공통 계수"
+  const common =
+    atkTerm *
     (1 + dmg/100.0) *
     (1 + stat/100.0) *
     (1 + amp/100.0) *
     (1 + boss/100.0) *
     avg *
-    (1 + skill/100.0) *
     crit *
     (1 + fin/100.0);
-}
 
+  // ✅ 기본기/스킬 분리: 스킬데미지는 스킬(=1-p) 비중에만
+  const basicPart = common;                      // 기본기에는 스킬데미지 미적용
+  const skillPart = common * (1 + skill/100.0);  // 스킬에는 스킬데미지 적용
+
+  return p * basicPart + q * skillPart;
+}
 function collectSet(prefix){
   const set = {};
   stats.forEach(s=>{
