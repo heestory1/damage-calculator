@@ -617,6 +617,10 @@ function applyPremiumUI(){
   const ok = isPremium();
   updateImportQuotaHint();
 
+  // 강제 프리미엄일 땐 인증 UI 숨김(선택)
+  const authBox = document.querySelector(".premium-auth-header");
+  if(authBox) authBox.style.display = DEV_FORCE_PREMIUM ? "none" : "flex";
+
   const saveBox = document.getElementById("premium-save");
   const effBox  = document.getElementById("premium-eff-table");
   const hint    = document.getElementById("authHint");
