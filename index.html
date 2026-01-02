@@ -490,29 +490,20 @@ input[type="text"]{
 // 프리미엄 코드 정의 (STEP 2 핵심)
 // =========================
 
-const PREMIUM_CODES = [
-  { code: "샤엘09", type: "permanent", label: "영구A" },
-  { code: "2222",   type: "permanent", label: "영구B" },
-  {
-    code: "heestory",
-    type: "temp",
-    label: "임시",
-    expiresAt: "2026-01-31T23:59:59+09:00"
-  }
-];
-
 
   // =========================
 // 프리미엄 자동 인증 토큰
 // =========================
 
-const PREMIUM_TOKEN_KEY = "premium_token_v1";
+const PREMIUM_TOKEN_KEY = "premium_token_v2"; // v1 -> v2로 바꾸면 이전 토큰 충돌 방지
 
-function savePremiumToken(found){
+function savePremiumToken(payload, code){
+  // payload: { ok:true, type:"permanent|temp", expiresAt:null|ISO }
   const token = {
-    code: found.code,
-    type: found.type,
-    expiresAt: found.expiresAt || null,
+    ok: true,
+    code: code,                       // ✅ 저장
+    type: payload.type || "permanent",
+    expiresAt: payload.expiresAt || null,
     savedAt: Date.now()
   };
   localStorage.setItem(PREMIUM_TOKEN_KEY, JSON.stringify(token));
@@ -530,6 +521,20 @@ function readPremiumToken(){
   }
 }
 
+function isTokenValid(token){
+  if(!token || token.ok !== true) return false;
+
+  // ✅ code는 "있으면 좋고 없으면(구버전 토큰) 허용"도 가능
+  // 엄격하게 하려면: if(!token.code) return false;
+
+  if(token.type === "temp"){
+    const exp = Date.parse(token.expiresAt);
+    if(!isFinite(exp)) return false;
+    if(Date.now() > exp) return false;
+  }
+  return true;
+}
+
 function isPremium(){
   const token = readPremiumToken();
   if(!isTokenValid(token)){
@@ -539,50 +544,45 @@ function isPremium(){
   return true;
 }
 
-function isTokenValid(token){
-  if(!token || !token.code) return false;
+const AUTH_API_BASE = "https://torifun-auth.yhs7894-c0c.workers.dev";
 
-  // 🔹 코드가 아직 유효한지 (목록에 존재하는지)
-  const found = PREMIUM_CODES.find(c => c.code === token.code);
-  if(!found) return false;
-
-  // 🔹 임시코드는 만료 검사
-  if(found.type === "temp"){
-    const exp = Date.parse(found.expiresAt);
-    if(!isFinite(exp) || Date.now() > exp) return false;
-  }
-
-  return true;
-}
-
-function verifyCode(){
+  
+async function verifyCode(){
   const input = (document.getElementById("authCode")?.value || "").trim();
-  const found = PREMIUM_CODES.find(c => c.code === input);
-
-  if(!found){
-    clearPremiumToken();
-    alert("인증 실패");
-    applyPremiumUI();
+  if(!input){
+    alert("코드를 입력하세요.");
     return;
   }
 
-  // 임시코드 만료 재확인
-  if(found.type === "temp"){
-    const exp = Date.parse(found.expiresAt);
-    if(!isFinite(exp) || Date.now() > exp){
+  try{
+    const res = await fetch(`${AUTH_API_BASE}/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: input })
+    });
+
+    const data = await res.json();
+
+    if(!data || data.ok !== true){
       clearPremiumToken();
-      alert("임시 코드가 만료되었습니다.");
+      alert("인증 실패");
       applyPremiumUI();
       return;
     }
+
+    // ✅ 성공: 서버가 준 type/expiresAt 저장
+    savePremiumToken(data, input); // ✅ code 같이 저장
+    alert("인증 완료");
+    applyPremiumUI();
+    schedulePremiumExpire();
+
+  }catch(err){
+    clearPremiumToken();
+    alert("서버 인증 오류 (네트워크/차단 가능).");
+    applyPremiumUI();
   }
-  
-  // 🔹 성공 → 자동 인증 저장
-  savePremiumToken(found);
-  alert("인증 완료");
-  applyPremiumUI();
-  schedulePremiumExpire(); // ✅ 이 줄 추가
 }
+
 
 function logoutPremium(){
   clearPremiumToken();
@@ -600,22 +600,19 @@ function applyPremiumUI(){
   if(saveBox) saveBox.style.display = ok ? "block" : "none";
   if(effBox)  effBox.style.display  = ok ? "block" : "none";
 
-  if(hint){
-    if(ok){
-     const token = readPremiumToken();
-const found = PREMIUM_CODES.find(c => c.code === token?.code);
-
-if(found && found.type === "temp" && found.expiresAt){
-  const exp = new Date(Date.parse(found.expiresAt));
-  hint.innerHTML = `· 인증 완료(임시): ${exp.toLocaleString()} 까지 활성`;
-}else{
-  hint.innerHTML = "· 인증 완료: 저장/불러오기 및 효율분석표가 활성화됩니다.";
-}
-
+ if(hint){
+  if(ok){
+    const token = readPremiumToken();
+    if(token?.type === "temp" && token.expiresAt){
+      const exp = new Date(Date.parse(token.expiresAt));
+      hint.innerHTML = `· 인증 완료(임시): ${exp.toLocaleString()} 까지 활성`;
     }else{
-      hint.innerHTML = "· 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.";
+      hint.innerHTML = "· 인증 완료: 저장/불러오기 및 효율분석표가 활성화됩니다.";
     }
+  }else{
+    hint.innerHTML = "· 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.";
   }
+}
 const thanks = document.getElementById("memberThanks");
 if(thanks) thanks.style.display = ok ? "block" : "none";
   
@@ -838,7 +835,9 @@ function num(id){
 function recomputeMainStatAndStatDamage(){
   const statOld = parseFloat((document.getElementById("old_stat")?.value || "").trim());
   const mainPctOld = parseFloat((document.getElementById("old_mainPct")?.value || "").trim());
-  if(isNaN(statOld) || isNaN(mainPctOld)) return;
+if(isNaN(statOld) || isNaN(mainPctOld)){
+  return; // ✅ 조용히 종료(팝업 금지)
+}
 
   const baseFactorOld = 1 + mainPctOld/100.0;
   if(baseFactorOld <= 0) return;
@@ -961,19 +960,18 @@ function updateAttackSpeedSummary(){
   const d_as = parseFloat((document.getElementById("delta_as")?.value || "").trim());
   const d = isNaN(d_as) ? 0 : (d_as/100.0);
 
-  const p_custom_raw = parseFloat(document.getElementById("p_custom")?.value);
-  const p_custom = isNaN(p_custom_raw) ? 0.5 : (p_custom_raw/100.0);
+const p_raw = parseFloat(document.getElementById("p_custom")?.value);
+const p = isNaN(p_raw) ? 0.5 : clamp01(p_raw/100.0);
 
-  const factorCustom = totalSpeedFactor(p_custom, S_base, d);
-  const incCustom = (factorCustom - 1) * 100;
+const factorCustom = totalSpeedFactor(p, S_base, d);
+const incCustom = (factorCustom - 1) * 100;
 
-  const signCls = incCustom > 0 ? "positive" : (incCustom < 0 ? "negative" : "");
-  asSummaryEl.className = "result-item-value " + signCls;
-  asSummaryEl.textContent =
-    `p=${(p_custom*100).toFixed(1)}% 기준 공속 반영 DPS: ${incCustom.toFixed(3)} %`;
+...
+asSummaryEl.textContent =
+  `p=${(p*100).toFixed(1)}% 기준 공속 반영 DPS: ${incCustom.toFixed(3)} %`;
 
-  const ps = [0.3, 0.5, 0.7, p_custom];
-  const labels = ["0.3", "0.5", "0.7", "사용자"];
+const ps = [0.3, 0.5, 0.7, p];
+const labels = ["0.3", "0.5", "0.7", "사용자"];
   let lines = [];
   for(let i=0;i<ps.length;i++){
     const f = totalSpeedFactor(ps[i], S_base, d);
@@ -982,6 +980,24 @@ function updateAttackSpeedSummary(){
   }
   asScenEl.textContent = lines.join("  |  ");
 }
+  
+function requireMainStatInputs(){
+  const statEl = document.getElementById("old_stat");
+  const pctEl  = document.getElementById("old_mainPct");
+
+  const statOld = parseFloat((statEl?.value || "").trim());
+  const mainPctOld = parseFloat((pctEl?.value || "").trim());
+
+  if(!isFinite(statOld) || !isFinite(mainPctOld)){
+    alert("오류: '스탯비례 데미지(%)'와 '현재 주스탯%(합연산,%)'는 반드시 입력해야 합니다.");
+    if(!isFinite(statOld) && statEl) statEl.focus();
+    else if(pctEl) pctEl.focus();
+    return false;
+  }
+  return true;
+}
+
+  
 function calcDamage(s){
   const atkBase  = s.atk || 0;
   const weapon   = s.weapon || 0;
@@ -1056,6 +1072,7 @@ function getBaseForEfficiency(){
 }
 
 function calculate(){
+  if(!requireMainStatInputs()) return;   // ✅ 추가
   recomputeMainStatAndStatDamage();
 
   const oldSet = collectSet("old_");
@@ -1124,6 +1141,7 @@ function calculate(){
 }
 
 function analyzeEfficiency(silent){
+  if(!requireMainStatInputs()) return;   // ✅ 추가
   recomputeMainStatAndStatDamage();
 
   const baseSet = getBaseForEfficiency();
@@ -1551,10 +1569,9 @@ function schedulePremiumExpire(){
   const token = readPremiumToken();
   if(!token) return;
 
-  const found = PREMIUM_CODES.find(c => c.code === token.code);
-  if(!found || found.type !== "temp") return;
+  if(token.type !== "temp") return;
 
-  const exp = Date.parse(found.expiresAt);
+  const exp = Date.parse(token.expiresAt);
   if(!isFinite(exp)) return;
 
   const remain = exp - Date.now();
@@ -1570,7 +1587,6 @@ function schedulePremiumExpire(){
     alert("임시 프리미엄이 만료되었습니다.");
   }, remain);
 }
-
   
 // 초기 실행
 createStatRows();
