@@ -450,19 +450,54 @@ input[type="text"]{
 */
 
 // =========================
-// 프리미엄(코드 인증) 게이팅
+// 프리미엄(코드 인증) - 다중 코드 + 임시 코드(만료)
 // =========================
 
-  // =========================
-// 프리미엄(코드 인증) 게이팅
-// =========================
+// ✅ "세이브 키(tori_...)"랑 겹치지 않게 프리미엄 키는 따로
+const PREMIUM_STATE_KEY = "premium_state_v1";
 
-// 방송용이든 뭐든, 이 값만 바꾸면 됨
-const PREMIUM_CODE = "1111";
-const PREMIUM_KEY  = "premium_ok";
+/**
+ * codes:
+ * - code: 실제 입력 코드
+ * - label: 표시용(선택)
+ * - expiresAt: 임시코드 만료(밀리초 epoch). 없으면 영구
+ */
+const PREMIUM_CODES = [
+  { code: "샤엘09", label: "영구A" },                  // 영구 1
+  { code: "2222", label: "영구B" },                  // 영구 2
+  // ✅ 임시 1개(예: 2026-01-31 23:59:59 KST 까지)
+  // 날짜만 바꿔서 쓰시면 됩니다.
+  { code: "heestory", label: "임시", expiresAt: new Date("2026-01-31T23:59:59+09:00").getTime() },
+];
 
+function getPremiumState(){
+  try{
+    const raw = localStorage.getItem(PREMIUM_STATE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function setPremiumState(state){
+  localStorage.setItem(PREMIUM_STATE_KEY, JSON.stringify(state));
+}
+
+function clearPremiumState(){
+  localStorage.removeItem(PREMIUM_STATE_KEY);
+}
+
+// ✅ 만료 체크 포함
 function isPremium(){
-  return localStorage.getItem(PREMIUM_KEY) === "1";
+  const st = getPremiumState();
+  if(!st || st.ok !== true) return false;
+
+  // expiresAt이 있으면 만료 검사
+  if(st.expiresAt && Date.now() > st.expiresAt){
+    clearPremiumState();
+    return false;
+  }
+  return true;
 }
 
 function applyPremiumUI(){
@@ -476,30 +511,56 @@ function applyPremiumUI(){
   if(effBox)  effBox.style.display  = ok ? "block" : "none";
 
   if(hint){
-    hint.innerHTML = ok
-      ? "· 인증 완료: 저장/불러오기 및 효율분석표가 활성화됩니다."
-      : "· 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.";
+    if(ok){
+      const st = getPremiumState() || {};
+      const exp = st.expiresAt ? new Date(st.expiresAt) : null;
+      hint.innerHTML = exp
+        ? `· 인증 완료(임시): ${exp.toLocaleString()} 까지 활성`
+        : "· 인증 완료: 저장/불러오기 및 효율분석표가 활성화됩니다.";
+    }else{
+      hint.innerHTML = "· 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.";
+    }
   }
 }
 
+// ✅ 여러 코드 중 매칭 + 임시코드는 expiresAt까지 저장
 function verifyCode(){
   const input = (document.getElementById("authCode")?.value || "").trim();
-  if(input === PREMIUM_CODE){
-    localStorage.setItem(PREMIUM_KEY, "1");
-    alert("인증 완료");
-  }else{
-    localStorage.removeItem(PREMIUM_KEY);
+  const found = PREMIUM_CODES.find(x => x.code === input);
+
+  if(!found){
+    clearPremiumState();
     alert("인증 실패");
+    applyPremiumUI();
+    try{ analyzeEfficiency(true); }catch(e){}
+    return;
   }
+
+  // 성공: 영구/임시 상태 저장
+  setPremiumState({
+    ok: true,
+    label: found.label || "",
+    expiresAt: found.expiresAt || null,
+    authedAt: Date.now()
+  });
+
+  alert(found.expiresAt ? "임시 인증 완료" : "인증 완료");
   applyPremiumUI();
   try{ analyzeEfficiency(true); }catch(e){}
 }
 
 function logoutPremium(){
-  localStorage.removeItem(PREMIUM_KEY);
+  clearPremiumState();
   applyPremiumUI();
   try{ analyzeEfficiency(true); }catch(e){}
 }
+
+// ✅ 페이지 로드 시 만료 자동정리 + UI 반영
+(function initPremium(){
+  // 만료면 정리
+  isPremium(); 
+  applyPremiumUI();
+})();
 
 const stats = [
   { key:"atk",      label:"마을 상태창 공격력" },
