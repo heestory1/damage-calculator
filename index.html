@@ -20,6 +20,27 @@
   line-height:1.1;
 }
 
+  .premium-box{
+  display:flex;
+  flex-direction:column; /* 버튼 줄 위, 감사문구 아래 */
+  align-items:flex-end;  /* 오른쪽 정렬 유지 */
+  line-height:1.1;
+}
+
+  
+  .member-thanks{
+    display:none;          /* ✅ 초기 숨김(깜빡임 방지) */
+  margin-top:4px;
+  font-size:11px;
+  font-weight:800;
+  color:#2563eb;
+  text-align:right;      /* 버튼 아래 오른쪽 정렬 */
+  white-space:nowrap;
+  user-select:none;
+  opacity:.9;
+}
+
+  
 .legal-watermark{
   margin-top:4px;
   font-size:10px;
@@ -82,7 +103,7 @@ body{
   align-items:center;
   gap:10px;
   justify-content:flex-end;
-  flex-wrap:nowrap;
+  flex-wrap:wrap;
 }
 
 .premium-auth-header{
@@ -310,11 +331,16 @@ input[type="text"]{
   </div>
 
   <div class="header-right">
-    <div class="premium-auth-header">
-      <input id="authCode" placeholder="인증 코드" autocomplete="off">
-      <button class="auth-btn" onclick="verifyCode()">인증</button>
-      <button class="auth-btn secondary" onclick="logoutPremium()">해제</button>
-    </div>
+    <div class="premium-box">
+  <div class="premium-auth-header">
+    <input id="authCode" placeholder="인증 코드" autocomplete="off">
+    <button class="auth-btn" onclick="verifyCode()">인증</button>
+    <button class="auth-btn secondary" onclick="logoutPremium()">해제</button>
+  </div>
+
+  <div class="member-thanks" id="memberThanks">멤버쉽 가입 감사합니다!</div>
+</div>
+
 
     <div class="maker-wrap">
       <div class="maker">스카니아9 희수토리</div>
@@ -590,6 +616,9 @@ if(found && found.type === "temp" && found.expiresAt){
       hint.innerHTML = "· 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.";
     }
   }
+const thanks = document.getElementById("memberThanks");
+if(thanks) thanks.style.display = ok ? "block" : "none";
+  
 }
 
 const stats = [
