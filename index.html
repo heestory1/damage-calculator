@@ -365,7 +365,10 @@ input[type="text"]{
     · <span class="hl">마을 상태창 공격력</span>은 마을 기준 그대로 입력 (무기 착용 및 보유효과 포함 / 스킬 제외)<br>
     · 공격력 증감란에는 <span class="hl">신규 장비로 인한 순수 공격력 변화량</span>만 입력합니다.<br>
     · 증감을 비워두면 <span class="hl">신규 수치 = 기존 수치</span>로 자동 유지됩니다.<br>
-    · <span class="hl">스탯비례 데미지</span>는 이제 아래 <span class="hl">고정 주스탯/주스탯%</span> 입력으로 자동 계산됩니다.<br>
+    · <span class="hl">스탯비례 데미지(%)</span>와 <span class="hl">현재 주스탯%(합연산,%)</span>를 입력하면,
+  <span class="hl">고정 주스탯</span>이 <span class="hl">자동 추정</span>됩니다.<br>
+· 신규 장비로 <span class="hl">주스탯%(합연산,%)</span>가 변하면, 추정된 고정 주스탯을 기준으로
+  <span class="hl">스탯비례 데미지(%)</span>가 <span class="hl">자동 갱신</span>됩니다.<br>
     · <span class="hl">무기 장착 및 보유효과(합연산,%)</span>은 직접 계산기를 통하여 합산 후 그 값을 입력합니다.<br>
     · <span class="hl">스킬로 올라가는 공격력%(합연산,%)</span>도 스킬/버프 등으로 인한 증가분을 모두 합산한 값을 그대로 입력합니다.<br>
     · <span class="hl">공격 속도</span>는 <span class="hl">기본기술 비중(p)</span>만큼만 DPS에 반영됩니다.<br>
@@ -625,9 +628,9 @@ const stats = [
   { key:"cr",       label:"크리티컬 확률(%)" },
   { key:"cd",       label:"크리티컬 데미지(%)" },
   { key:"as",       label:"공격 속도(%)" },
-  { key:"stat",     label:"스탯비례 데미지(%)" },
+  { key:"stat",     label:"스탯비례 데미지(%) (필수입력)" },
 
-  { key:"mainFixed", label:"고정 주스탯 (자동 추정)" },
+  { key:"mainFixed", label:"고정 주스탯 (자동 추정값)" },
   { key:"mainPct",   label:"현재 주스탯%(합연산,%)" },
   
   { key:"dmg",      label:"데미지(%)" },
@@ -706,13 +709,17 @@ function createStatRows(){
     deltaInput.placeholder = "예: -5.5";
     deltaInput.autocomplete = "off";
     deltaInput.spellcheck = false;
-    
-    if(s.key === "stat"){
-  // stat은 old 입력 가능, delta는 사용 안함(비활성)
+  
+    if(s.key === "stat" || s.key === "mainFixed"){
+  // stat / mainFixed는 delta 사용 안함
   deltaInput.value = "";
-  deltaInput.placeholder = "사용 안함 (아래 주스탯 입력)";
+  deltaInput.placeholder =
+    (s.key === "stat")
+      ? "사용 안함 (주스탯% 변화는 '현재 주스탯%'에서 입력)"
+      : "사용 안함 (자동 추정값)";
   deltaInput.readOnly = true;
   deltaInput.classList.add("auto");
+
   signBtn.disabled = true;
   signBtn.style.opacity = "0.4";
   signBtn.style.cursor = "not-allowed";
@@ -994,7 +1001,7 @@ function requireMainStatInputs(){
   const mainPctOld = parseFloat((pctEl?.value || "").trim());
 
   if(!isFinite(statOld) || !isFinite(mainPctOld)){
-    alert("오류: '스탯비례 데미지(%)'와 '현재 주스탯%(합연산,%)'는 반드시 입력해야 합니다.");
+    alert("필수 입력: '스탯비례 데미지(%)'와 '현재 주스탯%(합연산,%)'를 입력해야 고정 주스탯 자동 추정 및 계산이 가능합니다.");
     if(!isFinite(statOld) && statEl) statEl.focus();
     else if(pctEl) pctEl.focus();
     return false;
