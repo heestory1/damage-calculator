@@ -318,9 +318,7 @@ input[type="text"]{
 
     <div class="maker-wrap">
       <div class="maker">스카니아9 희수토리</div>
-      <div class="legal-watermark">
-        © 2025 HEESUTORY · Torifun Calculator
-      </div>
+      <div class="legal-watermark" id="legalMark"></div>
     </div>
   </div> <!-- ✅ header-right 닫힘 -->
 </div>   <!-- ✅ header 닫힘 -->
@@ -1415,6 +1413,11 @@ function deleteData(){
   loadList();
   alert("삭제 완료: "+key.replace("tori_",""));
 }
+(function(){
+  const el = document.getElementById("legalMark");
+  if(!el) return;
+  el.textContent = `© ${new Date().getFullYear()} HEESUTORY · Torifun Calculator`;
+})();
 
 // 초기 실행
 createStatRows();
