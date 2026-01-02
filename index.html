@@ -303,29 +303,31 @@ input[type="text"]{
 <body>
 <div class="container">
 
-  <div class="header">
-    <div>
-      <div class="title">토리펀</div>
-      <div class="sub">메이플키우기 최종 데미지 비교 · 스탯 효율 분석</div>
+<div class="header">
+  <div>
+    <div class="title">토리펀</div>
+    <div class="sub">메이플키우기 최종 데미지 비교 · 스탯 효율 분석</div>
+  </div>
+
+  <div class="header-right">
+    <div class="premium-auth-header">
+      <input id="authCode" placeholder="인증 코드" autocomplete="off">
+      <button class="auth-btn" onclick="verifyCode()">인증</button>
+      <button class="auth-btn secondary" onclick="logoutPremium()">해제</button>
     </div>
 
-    <div class="header-right">
-      <div class="premium-auth-header">
-        <input id="authCode" placeholder="인증 코드" autocomplete="off">
-        <button class="auth-btn" onclick="verifyCode()">인증</button>
-        <button class="auth-btn secondary" onclick="logoutPremium()">해제</button>
+    <div class="maker-wrap">
+      <div class="maker">스카니아9 희수토리</div>
+      <div class="legal-watermark">
+        © 2025 HEESUTORY · Torifun Calculator
       </div>
+    </div>
+  </div> <!-- ✅ header-right 닫힘 -->
+</div>   <!-- ✅ header 닫힘 -->
 
-      <div class="maker-wrap">
-  <div class="maker">스카니아9 희수토리</div>
-  <div class="legal-watermark">
-    © 2025 HEESUTORY · Torifun Calculator
-  </div>
+<div class="eff-note" id="authHint" style="margin-top:6px;">
+  · 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.
 </div>
-
-  <div class="eff-note" id="authHint" style="margin-top:6px;">
-    · 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.
-  </div>
 
 
   <div class="update">
