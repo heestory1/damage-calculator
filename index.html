@@ -13,7 +13,23 @@
   --txt:#0f172a;
   --red:#dc2626;
 }
+.maker-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;   /* 오른쪽 정렬 */
+  line-height:1.1;
+}
 
+.legal-watermark{
+  margin-top:4px;
+  font-size:10px;
+  color:#94a3b8;
+  font-weight:600;
+  white-space:nowrap;
+  user-select:none;
+}
+
+  
 body{
   margin:0;
   background:#f5f7fb;
@@ -307,21 +323,6 @@ input[type="text"]{
   </div>
 </div>
 
-  .maker-wrap{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;   /* 오른쪽 정렬 */
-  line-height:1.1;
-}
-
-.legal-watermark{
-  margin-top:4px;
-  font-size:10px;
-  color:#94a3b8;          /* 연한 회색 */
-  font-weight:600;
-  white-space:nowrap;
-  user-select:none;       /* 드래그 복사 방지(심리적) */
-}
   <div class="eff-note" id="authHint" style="margin-top:6px;">
     · 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.
   </div>
