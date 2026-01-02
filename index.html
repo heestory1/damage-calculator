@@ -742,20 +742,39 @@ function createStatRows(){
     deltaInput.autocomplete = "off";
     deltaInput.spellcheck = false;
   
-    if(s.key === "stat" || s.key === "mainFixed"){
-  // stat / mainFixed는 delta 사용 안함
-  deltaInput.value = "";
-  deltaInput.placeholder =
-    (s.key === "stat")
-      ? "사용 안함 (주스탯% 변화는 '현재 주스탯%'에서 입력)"
-      : "사용 안함 (자동 추정값)";
-  deltaInput.readOnly = true;
-  deltaInput.classList.add("auto");
+    // ✅ 1) stat(스탯비례 데미지)는 증감 사용 안함(기존 정책 유지)
+    if(s.key === "stat"){
+      deltaInput.value = "";
+      deltaInput.placeholder = "사용 안함 (주스탯% 변화는 '현재 주스탯%'에서 입력)";
+      deltaInput.readOnly = true;
+      deltaInput.classList.add("auto");
+      signBtn.disabled = true;
+      signBtn.style.opacity = "0.4";
+      signBtn.style.cursor = "not-allowed";
+    }
 
-  signBtn.disabled = true;
-  signBtn.style.opacity = "0.4";
-  signBtn.style.cursor = "not-allowed";
-}
+    // ✅ 2) weapon / skillAtk는 증감 사용 안함 (요구사항)
+    if(s.key === "weapon" || s.key === "skillAtk"){
+      deltaInput.value = "";
+      deltaInput.placeholder = "사용 안함 (기준값)";
+      deltaInput.readOnly = true;
+      deltaInput.classList.add("auto");
+      signBtn.disabled = true;
+      signBtn.style.opacity = "0.4";
+      signBtn.style.cursor = "not-allowed";
+    }
+
+    // ✅ 3) mainFixed는 '기존 수치 자동' + '증감 입력 허용' (요구사항)
+    // - old_mainFixed는 위에서 readOnly 자동 계산 유지
+    // - delta_mainFixed는 입력 가능
+    if(s.key === "mainFixed"){
+      deltaInput.readOnly = false;
+      deltaInput.classList.remove("auto");
+      deltaInput.placeholder = "예: +300";
+      signBtn.disabled = false;
+      signBtn.style.opacity = "1";
+      signBtn.style.cursor = "pointer";
+    }
 
     deltaInput.addEventListener("input", ()=>{
       updateNewFromDelta(s.key);
@@ -884,10 +903,15 @@ if(isNaN(statOld) || isNaN(mainPctOld)){
   // 1) old 기준으로 mainFixed 역산 (자동 추정)
   const fixedBase = (statOld * 100.0) / baseFactorOld;
 
+  // ✅ mainFixed 증감(신규 장비로 고정 주스탯 변화) 반영
+  const deltaFixed = parseFloat((document.getElementById("delta_mainFixed")?.value || "").trim());
+  const fixedDelta = isNaN(deltaFixed) ? 0 : deltaFixed;
+  const fixedNewBase = fixedBase + fixedDelta;
+ 
   const oldFixedEl = document.getElementById("old_mainFixed");
   const newFixedEl = document.getElementById("new_mainFixed");
   if(oldFixedEl) oldFixedEl.value = fixedBase.toFixed(3);
-  if(newFixedEl) newFixedEl.value = fixedBase.toFixed(3);
+  if(newFixedEl) newFixedEl.value = fixedNewBase.toFixed(3);
 
   // 2) 신규 mainPct가 있으면 그걸 우선 반영해서 new_stat 자동 갱신
   const newMainPctStr = (document.getElementById("new_mainPct")?.value || "").trim();
@@ -900,7 +924,8 @@ if(isNaN(statOld) || isNaN(mainPctOld)){
   const newMainPctEl = document.getElementById("new_mainPct");
   if(newMainPctEl && (newMainPctEl.value.trim()==="")) newMainPctEl.value = mainPctForNew.toFixed(3);
 
-  const newStatVal = fixedBase * (1 + mainPctForNew/100.0) * 0.01;
+   // ✅ new_stat은 "신규 고정 주스탯(fixedNewBase)" 기준으로 계산
+  const newStatVal = fixedNewBase * (1 + mainPctForNew/100.0) * 0.01;
 
   const newStatEl = document.getElementById("new_stat");
   if(newStatEl && isFinite(newStatVal)) newStatEl.value = newStatVal.toFixed(3);
@@ -925,9 +950,10 @@ if(isNaN(statOld) || isNaN(mainPctOld)){
     updateNewFromDelta(key);
   }
 
-  if(key === "as") updateAttackSpeedSummary();
-  if(key === "stat" || key === "mainPct") recomputeMainStatAndStatDamage();
-}
+    if(key === "as") updateAttackSpeedSummary();
+  // ✅ mainFixed 증감 반영 위해 mainFixed도 재계산 트리거
+  if(key === "stat" || key === "mainPct" || key === "mainFixed") recomputeMainStatAndStatDamage();
+ }
 
 function updateNewFromDelta(key){
   const oldEl = document.getElementById("old_"+key);
@@ -947,9 +973,9 @@ function updateNewFromDelta(key){
 
   if(key === "as") updateAttackSpeedSummary();
 
-  // ✅ mainPct/stat 변경 시 new_stat 자동 갱신
-  if(key === "mainPct" || key === "stat") recomputeMainStatAndStatDamage();
-}
+   // ✅ mainPct/stat/mainFixed 변경 시 new_stat 자동 갱신
+  if(key === "mainPct" || key === "stat" || key === "mainFixed") recomputeMainStatAndStatDamage();
+ }
 
 
 function colorDelta(inputEl){
