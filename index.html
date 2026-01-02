@@ -941,45 +941,50 @@ function totalSpeedFactor(p, S, d){
   return 1 + pp * (ms - 1);
 }
 
-function updateAttackSpeedSummary(){
+  function updateAttackSpeedSummary(){
   const asSummaryEl = document.getElementById("asSummary");
   const asScenEl = document.getElementById("asScenarios");
   if(!asSummaryEl || !asScenEl) return;
 
-  // ✅ 공속 기준을 "현재 입력 기준(신규 우선)"으로 통일
-  // new_as가 있으면 new_as, 없으면 old_as 사용
+  // ✅ 공속 기준: new_as 우선, 없으면 old_as
   const asNewStr = (document.getElementById("new_as")?.value || "").trim();
   const asOldStr = (document.getElementById("old_as")?.value || "").trim();
+
   let asBase = parseFloat(asNewStr);
   if(isNaN(asBase)) asBase = parseFloat(asOldStr);
   if(isNaN(asBase)) asBase = 0;
 
   const S_base = asBase / 100.0;
 
-  // delta_as는 "순수 증감"이므로 그대로 사용
+  // ✅ 공속 증감(delta_as)
   const d_as = parseFloat((document.getElementById("delta_as")?.value || "").trim());
-  const d = isNaN(d_as) ? 0 : (d_as/100.0);
+  const d = isNaN(d_as) ? 0 : (d_as / 100.0);
 
-const p_raw = parseFloat(document.getElementById("p_custom")?.value);
-const p = isNaN(p_raw) ? 0.5 : clamp01(p_raw/100.0);
+  // ✅ p(기본기술 비중)
+  const p_raw = parseFloat(document.getElementById("p_custom")?.value);
+  const p = isNaN(p_raw) ? 0.5 : clamp01(p_raw / 100.0);
 
-const factorCustom = totalSpeedFactor(p, S_base, d);
-const incCustom = (factorCustom - 1) * 100;
+  const factorCustom = totalSpeedFactor(p, S_base, d);
+  const incCustom = (factorCustom - 1) * 100;
 
-...
-asSummaryEl.textContent =
-  `p=${(p*100).toFixed(1)}% 기준 공속 반영 DPS: ${incCustom.toFixed(3)} %`;
+  const signCls = incCustom > 0 ? "positive" : (incCustom < 0 ? "negative" : "");
+  asSummaryEl.className = "result-item-value " + signCls;
+  asSummaryEl.textContent = `p=${(p*100).toFixed(1)}% 기준 공속 반영 DPS: ${incCustom.toFixed(3)} %`;
 
-const ps = [0.3, 0.5, 0.7, p];
-const labels = ["0.3", "0.5", "0.7", "사용자"];
-  let lines = [];
+  const ps = [0.3, 0.5, 0.7, p];
+  const labels = ["0.3", "0.5", "0.7", "사용자"];
+  const lines = [];
+
   for(let i=0;i<ps.length;i++){
     const f = totalSpeedFactor(ps[i], S_base, d);
     const inc = (f - 1) * 100;
     lines.push(`${labels[i]}: ${inc.toFixed(3)}%`);
   }
+
   asScenEl.textContent = lines.join("  |  ");
 }
+
+
   
 function requireMainStatInputs(){
   const statEl = document.getElementById("old_stat");
