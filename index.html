@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>토리펀 (메이플키우기 최종데미지 계산기)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  
 <style>
 :root{
   --blue:#2563eb;
@@ -277,13 +277,25 @@ input[type="text"]{
     · <span class="hl">스킬 데미지(%)</span>는 <span class="hl">스킬공격 비중(1-p)</span>만큼만 DPS에 반영됩니다.<br>
   </div>
 
-  <div class="section-title">세팅 저장 / 불러오기</div>
+  <div class="section-title">프리미엄 인증</div>
   <div class="row">
-    <input id="saveName" placeholder="세이브 이름">
-    <select id="saveList" style="max-width:180px;"></select>
-    <button onclick="saveData()">저장</button>
-    <button class="secondary" onclick="loadData()">불러오기</button>
-    <button class="danger" onclick="deleteData()">삭제</button>
+    <input id="authCode" placeholder="인증 코드 입력" autocomplete="off">
+    <button onclick="verifyCode()">인증</button>
+    <button class="secondary" onclick="logoutPremium()">해제</button>
+  </div>
+  <div class="eff-note" id="authHint" style="margin-top:6px;">
+    · 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.
+  </div>
+  
+  <div id="premium-save">
+    <div class="section-title">세팅 저장 / 불러오기</div>
+    <div class="row">
+      <input id="saveName" placeholder="세이브 이름">
+      <select id="saveList" style="max-width:180px;"></select>
+      <button onclick="saveData()">저장</button>
+      <button class="secondary" onclick="loadData()">불러오기</button>
+      <button class="danger" onclick="deleteData()">삭제</button>
+    </div>
   </div>
 
   <div class="section-title">능력치 입력</div>
@@ -343,6 +355,7 @@ input[type="text"]{
     · 효율분석표의 기준값은 <span class="hl">레전더리 잠재옵션과 레전더리 어빌리티 옵션</span>을 기준으로 하였습니다.<span class="h1">(수정가능)></span><br>
   </div>
 
+<div id="premium-eff-table">
   <table>
     <thead>
       <tr>
@@ -358,8 +371,9 @@ input[type="text"]{
   <div class="row" style="justify-content:flex-start;gap:8px;margin-top:8px;">
     <button class="secondary" onclick="analyzeEfficiency(false)">효율만 다시 계산</button>
   </div>
+</div>
 
-  <div id="eff-summary"></div>
+<div id="eff-summary"></div>
 
   <div class="footer">
     ※ 본 계산기는 비교/참고용입니다.
@@ -368,6 +382,55 @@ input[type="text"]{
 </div>
 
 <script>
+
+  // =========================
+// 프리미엄(코드 인증) 게이팅
+// =========================
+
+// 방송용이든 뭐든, 이 값만 바꾸면 됨
+const PREMIUM_CODE = "TORIFUN2026";
+const PREMIUM_KEY  = "tori_premium_ok";
+
+function isPremium(){
+  return localStorage.getItem(PREMIUM_KEY) === "1";
+}
+
+function applyPremiumUI(){
+  const ok = isPremium();
+
+  const saveBox = document.getElementById("premium-save");
+  const effBox  = document.getElementById("premium-eff-table");
+  const hint    = document.getElementById("authHint");
+
+  if(saveBox) saveBox.style.display = ok ? "block" : "none";
+  if(effBox)  effBox.style.display  = ok ? "block" : "none";
+
+  if(hint){
+    hint.innerHTML = ok
+      ? "· 인증 완료: 저장/불러오기 및 효율분석표가 활성화됩니다."
+      : "· 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.";
+  }
+}
+
+function verifyCode(){
+  const input = (document.getElementById("authCode")?.value || "").trim();
+  if(input === PREMIUM_CODE){
+    localStorage.setItem(PREMIUM_KEY, "1");
+    alert("인증 완료");
+  }else{
+    localStorage.removeItem(PREMIUM_KEY);
+    alert("인증 실패");
+  }
+  applyPremiumUI();
+  try{ analyzeEfficiency(true); }catch(e){}
+}
+
+function logoutPremium(){
+  localStorage.removeItem(PREMIUM_KEY);
+  applyPremiumUI();
+  try{ analyzeEfficiency(true); }catch(e){}
+}
+
 const stats = [
   { key:"atk",      label:"마을 상태창 공격력" },
   { key:"weapon",   label:"무기 착용 및 보유효과(합연산,%)" },
@@ -458,28 +521,15 @@ function createStatRows(){
     deltaInput.spellcheck = false;
     
     if(s.key === "stat"){
-  // ✅ 기존 수치: 입력 가능 (readOnly 설정하지 말 것)
-  oldInput.placeholder = "직접 입력";
-
-  // ✅ 증감: 사용 안함(입력 불가)
+  // stat은 old 입력 가능, delta는 사용 안함(비활성)
   deltaInput.value = "";
-  deltaInput.placeholder = "사용 안함";
+  deltaInput.placeholder = "사용 안함 (아래 주스탯 입력)";
   deltaInput.readOnly = true;
   deltaInput.classList.add("auto");
   signBtn.disabled = true;
   signBtn.style.opacity = "0.4";
   signBtn.style.cursor = "not-allowed";
 }
-
-    if(s.key === "stat"){
-      deltaInput.value = "";
-      deltaInput.placeholder = "사용 안함 (아래 주스탯 입력)";
-      deltaInput.readOnly = true;
-      deltaInput.classList.add("auto");
-      signBtn.disabled = true;
-      signBtn.style.opacity = "0.4";
-      signBtn.style.cursor = "not-allowed";
-    }
 
     deltaInput.addEventListener("input", ()=>{
       updateNewFromDelta(s.key);
@@ -1053,6 +1103,10 @@ if(ranking.length===0){
 }
 
 const top = ranking[0].normGain || 1;
+  // ✅ 미인증이면 상위 5개만 표시
+if(!isPremium()){
+  ranking.splice(5);
+}
 
 // ✅ 툴팁 스타일(한 번만 넣기)
 if(!document.getElementById("eff-tooltip-style")){
@@ -1294,6 +1348,7 @@ function deleteData(){
 createStatRows();
 createEffRows();
 loadList();
+applyPremiumUI();                 // ✅ 추가
 recomputeMainStatAndStatDamage();
 updateAttackSpeedSummary();
 </script>
