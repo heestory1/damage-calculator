@@ -620,14 +620,18 @@ function applyPremiumUI(){
     const token = readPremiumToken();
     if(token?.type === "temp" && token.expiresAt){
       const exp = new Date(Date.parse(token.expiresAt));
-      hint.innerHTML = `· 인증 완료(임시): ${exp.toLocaleString()} 까지 활성`;
+      hint.innerHTML =
+        `· 인증 완료(임시): ${exp.toLocaleString()} 까지 모든 기능이 활성화됩니다.`;
     }else{
-      hint.innerHTML = "· 인증 완료: 저장/불러오기 및 효율분석표가 활성화됩니다.";
+      hint.innerHTML =
+        "· 인증 완료: 저장/불러오기 및 전체 효율분석 기능이 활성화되었습니다.";
     }
   }else{
-    hint.innerHTML = "· 미인증 상태에서는 저장/불러오기와 효율분석표가 숨겨지고, 효율 순위는 상위 5개만 표시됩니다.";
+    hint.innerHTML =
+      "· 미인증 상태입니다. 저장/불러오기와 효율분석표는 제한되며, 효율 순위는 상위 5개만 표시됩니다.";
   }
 }
+
 const thanks = document.getElementById("memberThanks");
 if(thanks) thanks.style.display = ok ? "block" : "none";
   
@@ -1570,7 +1574,8 @@ function updateImportQuotaHint(){
   const used = getFreeImportCount();
   const left = Math.max(0, FREE_IMPORT_LIMIT_PER_DAY - used);
   el.style.display = "block";
-  el.innerHTML = `· 미인증 상태: 가져오기(불러오기/TXT)가 하루 ${FREE_IMPORT_LIMIT_PER_DAY}회 무료입니다. (남은 횟수: <b>${left}</b>)`;
+  el.innerHTML =
+  `· 무료 가져오기: 하루 <b>${FREE_IMPORT_LIMIT_PER_DAY}회</b> 제공 (남은 횟수: <b>${left}</b>)`;
 }
 
  // =========================
