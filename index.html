@@ -377,14 +377,25 @@ input[type="text"]{
   
   <div id="premium-save">
     <div class="section-title">세팅 저장 / 불러오기</div>
+    
     <div class="row">
-      <input id="saveName" placeholder="세이브 이름">
-      <select id="saveList" style="max-width:180px;"></select>
-      <button onclick="saveData()">저장</button>
-      <button class="secondary" onclick="loadData()">불러오기</button>
-      <button class="danger" onclick="deleteData()">삭제</button>
-    </div>
-  </div>
+  <input id="saveName" placeholder="세이브 이름">
+  <select id="saveList" style="max-width:180px;"></select>
+
+  <button id="btnSave" onclick="saveData()">저장</button>
+  <button id="btnLoad" class="secondary" onclick="loadData()">불러오기</button>
+  <button id="btnDelete" class="danger" onclick="deleteData()">삭제</button>
+
+  <!-- ✅ 추가: TXT 내보내기/가져오기 -->
+  <button id="btnExportTxt" class="secondary" onclick="exportSelectedToTxt()">TXT 내보내기</button>
+  <button id="btnImportTxt" class="secondary" onclick="openImportTxt()">TXT 가져오기</button>
+</div>
+
+<div class="eff-note" id="importQuotaHint" style="margin-top:6px; display:none;"></div>
+
+<!-- ✅ 추가: 숨김 파일 입력 -->
+<input id="importTxtFile" type="file" accept=".txt,.json,text/plain,application/json" style="display:none" />
+
 
   <div class="section-title">능력치 입력</div>
 
@@ -440,7 +451,7 @@ input[type="text"]{
     · 효율 계산은 <span class="hl">현재 입력된 능력치</span> 기준입니다. 신규 수치가 있으면 그 값을, 없으면 기존 수치를 사용합니다.<br>
     · 기본 기준은 모든 %스탯 <span class="hl">+1%</span>, 장비로 변경되는 공격력은 <span class="hl">+1000</span>입니다. 아래에서 항목별 기준 증가량을 직접 바꿀 수 있습니다.<br>
     · 장비 공격력 효율은 <span class="hl">기준 증가량 × 무기 (장착+보유)효과 × (1 + 스킬 공격력)</span>이 반영된 값 기준으로 계산됩니다.<br>
-    · 효율분석표의 기준값은 <span class="hl">레전더리 잠재옵션과 레전더리 어빌리티 옵션</span>을 기준으로 하였습니다.<span class="h1">(수정가능)></span><br>
+    · 효율분석표의 기준값은 <span class="hl">레전더리 잠재옵션과 레전더리 어빌리티 옵션</span>을 기준으로 하였습니다.<span class="h1">(수정가능)</span><br>
   </div>
 
 <div id="premium-eff-table">
@@ -595,6 +606,7 @@ function logoutPremium(){
   
 function applyPremiumUI(){
   const ok = isPremium();
+  updateImportQuotaHint();
 
   const saveBox = document.getElementById("premium-save");
   const effBox  = document.getElementById("premium-eff-table");
@@ -1501,6 +1513,213 @@ function saveData(){
   alert("저장 완료: "+name);
 }
 
+// =========================
+// 무료 가져오기(불러오기/파일가져오기) 하루 3회 제한
+// =========================
+const FREE_IMPORT_LIMIT_PER_DAY = 3;
+const FREE_IMPORT_KEY_PREFIX = "free_import_count_"; // + YYYY-MM-DD
+
+function getTodayKey(){
+  // 브라우저 로컬 날짜 기준(한국 PC면 KST로 잡힘)
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function getFreeImportCount(){
+  const key = FREE_IMPORT_KEY_PREFIX + getTodayKey();
+  const v = parseInt(localStorage.getItem(key) || "0", 10);
+  return isNaN(v) ? 0 : v;
+}
+
+function incFreeImportCount(){
+  const key = FREE_IMPORT_KEY_PREFIX + getTodayKey();
+  const next = getFreeImportCount() + 1;
+  localStorage.setItem(key, String(next));
+  return next;
+}
+
+// ✅ 불러오기/가져오기 실행 전에 호출
+function requireImportQuotaOrPremium(){
+  if(isPremium()) return true;
+
+  const used = getFreeImportCount();
+  if(used >= FREE_IMPORT_LIMIT_PER_DAY){
+    alert(`오늘 무료 가져오기 횟수(${FREE_IMPORT_LIMIT_PER_DAY}회)를 모두 사용했습니다.`);
+    return false;
+  }
+
+  const nowUsed = incFreeImportCount();
+  updateImportQuotaHint();
+  return true;
+}
+
+// ✅ 안내 문구 갱신
+function updateImportQuotaHint(){
+  const el = document.getElementById("importQuotaHint");
+  if(!el) return;
+
+  if(isPremium()){
+    el.style.display = "none";
+    el.textContent = "";
+    return;
+  }
+
+  const used = getFreeImportCount();
+  const left = Math.max(0, FREE_IMPORT_LIMIT_PER_DAY - used);
+  el.style.display = "block";
+  el.innerHTML = `· 미인증 상태: 가져오기(불러오기/TXT)가 하루 ${FREE_IMPORT_LIMIT_PER_DAY}회 무료입니다. (남은 횟수: <b>${left}</b>)`;
+}
+
+ // =========================
+// TXT 내보내기/가져오기
+// =========================
+
+// 현재 선택된 세이브(localStorage의 tori_*)를 TXT로 다운로드
+function exportSelectedToTxt(){
+  const sel = document.getElementById("saveList");
+  const key = sel?.value || "";
+  if(!key || !key.startsWith("tori_")){
+    alert("내보낼 세이브를 먼저 선택하세요.");
+    return;
+  }
+
+  const raw = localStorage.getItem(key);
+  if(!raw){
+    alert("저장된 데이터가 없습니다.");
+    return;
+  }
+
+  const name = key.replace("tori_","");
+  const payload = {
+    version: 1,
+    name,
+    exportedAt: new Date().toISOString(),
+    data: JSON.parse(raw)
+  };
+
+  const text = JSON.stringify(payload, null, 2);
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `torifun-save-${name}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+// 파일 선택창 열기
+function openImportTxt(){
+  const input = document.getElementById("importTxtFile");
+  if(!input) return;
+
+  input.value = "";
+  input.onchange = async (e)=> {
+    const file = e.target.files?.[0];
+    if(!file) return;
+
+    // ✅ 미인증이면 하루 3회 제한 적용
+    if(!requireImportQuotaOrPremium()) return;
+
+    try{
+      const text = await file.text();
+      importTxtContent(text, file.name);
+    }catch(err){
+      alert("파일 읽기 실패");
+    }
+  };
+
+  input.click();
+}
+
+// TXT 내용(JSON)을 파싱해서 저장 + (선택)즉시 적용
+function importTxtContent(text, filename){
+  let obj;
+  try{
+    obj = JSON.parse(text);
+  }catch(e){
+    alert("가져오기 실패: 파일 내용이 JSON 형식이 아닙니다.");
+    return;
+  }
+
+  // 포맷 호환: {name, data} 또는 data만 들어있는 경우 처리
+  let name = (obj?.name || "").trim();
+  let data = obj?.data;
+
+  if(!data && obj && typeof obj === "object"){
+    // data가 없으면 obj 자체를 data로 간주(옛 포맷)
+    data = obj;
+  }
+
+  // 이름이 없으면 파일명에서 추출
+  if(!name){
+    name = (filename || "imported").replace(/^torifun-save-/, "").replace(/\.txt$/i,"").replace(/\.json$/i,"").trim();
+  }
+
+  // 그래도 비었으면 기본값
+  if(!name) name = "imported";
+
+  // 저장
+  try{
+    localStorage.setItem("tori_"+name, JSON.stringify(data));
+  }catch(e){
+    alert("가져오기 실패: 저장 공간이 부족하거나 브라우저 제한일 수 있습니다.");
+    return;
+  }
+
+  loadList();
+
+  // 목록에서 방금 가져온 항목 선택 + 즉시 적용(여기서는 카운트 추가로 안 올림)
+  const sel = document.getElementById("saveList");
+  if(sel){
+    sel.value = "tori_"+name;
+  }
+  applySaveDataToUI(data, name);
+
+  alert("TXT 가져오기 완료: " + name);
+}
+
+// loadData() 로직을 함수화(파일 가져오기에서도 재사용)
+function applySaveDataToUI(data, nameForInput){
+  // 불러온 이름을 세이브 이름 칸에도 자동 입력
+  const saveNameEl = document.getElementById("saveName");
+  if(saveNameEl && nameForInput) saveNameEl.value = nameForInput;
+
+  // ✅ 기준값(step)은 항상 고정(당신이 원한 정책 유지)
+  stats.forEach(s=>{
+    const stepEl = document.getElementById("step_"+s.key);
+    if(stepEl) stepEl.value = getDefaultStep(s.key);
+  });
+
+  const pctEl = document.getElementById("step_mainPctEff");
+  if(pctEl) pctEl.value = 12;
+
+  const fixedEl = document.getElementById("step_mainFixedEff");
+  if(fixedEl) fixedEl.value = 600;
+
+  // ✅ 능력치(old/delta)만 적용
+  stats.forEach(s=>{
+    const item = data[s.key] || {};
+    document.getElementById("old_"+s.key).value   = item.old   || "";
+    document.getElementById("delta_"+s.key).value = item.delta || "";
+
+    colorDelta(document.getElementById("delta_"+s.key));
+    syncFromOld(s.key);
+  });
+
+  // ✅ p_custom은 저장값 사용
+  if(data["_p_custom"] && document.getElementById("p_custom")){
+    document.getElementById("p_custom").value = data["_p_custom"].value || "50";
+  }
+
+  recomputeMainStatAndStatDamage();
+  updateAttackSpeedSummary();
+}
+ 
 
 function loadList(){
   // ✅ (1) 원치 않는 더미 세이브 자동 삭제
@@ -1523,6 +1742,8 @@ function loadList(){
 }
 
 function loadData(){
+    // ✅ 미인증이면 하루 3회 제한
+  if(!requireImportQuotaOrPremium()) return;
   const sel = document.getElementById("saveList");
   const key = sel.value;
   if(!key){ alert("불러올 세이브를 선택하세요."); return; }
