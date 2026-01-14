@@ -1,3 +1,4 @@
+import { __debugAttackSpeed } from '../domain/calculator';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCalculator } from './useCalculator';
@@ -22,6 +23,8 @@ import {
 } from 'lucide-react';
 
 export const Calculator = () => {
+  console.log('[attackSpeedTest]', __debugAttackSpeed(66.7));
+  
   const { isPremium } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
 
