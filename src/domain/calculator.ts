@@ -1,3 +1,5 @@
+import { calcAttackFrame, calcHitsPerSecond } from './attackSpeed';
+
 import { StatSet } from './types';
 
 export function clamp(x: number, min: number, max: number) {
@@ -84,4 +86,9 @@ export function computeFinalDamage(s: StatSet, pPercent: number): number {
   const skillPart = common * (1 + (s.skill ?? 0) / 100.0);
 
   return p * basicPart + q * skillPart;
+}
+export function __debugAttackSpeed(atkSpeed: number) {
+  const frame = calcAttackFrame(atkSpeed);
+  const hps = calcHitsPerSecond(frame);
+  return { frame, hps };
 }
