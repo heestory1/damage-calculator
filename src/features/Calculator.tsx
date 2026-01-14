@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useCalculator } from './useCalculator';
 import { Card } from '@/ui/components/base';
 import { StatRow } from '@/ui/components/StatRow';
-import { STAT_LABELS, STAT_ORDER, STAT_DESCRIPTIONS } from '@/domain/constants';
+import { STAT_LABELS, STAT_ORDER, STAT_DESCRIPTIONS, MYSTIC_WEAPON_FIXED } from '@/domain/constants';
 import { Efficiency } from './Efficiency';
 import { StorageSection } from './Storage';
 import { useAuth } from './useAuth';
@@ -35,6 +35,7 @@ export const Calculator = () => {
   }, []);
 
   const { 
+    rawOld,
     old, setOldValue, 
     delta, setDeltaValue, 
     newSet, 
@@ -137,11 +138,11 @@ export const Calculator = () => {
                     <StatRow
                       label={STAT_LABELS[key]}
                       desc={STAT_DESCRIPTIONS[key]}
-                      oldVal={old[key]}
+                      oldVal={key === 'weapon' ? rawOld[key] : old[key]}
                       onOldChange={(v) => setOldValue(key, v)}
                       deltaVal={delta[key]}
                       onDeltaChange={(v) => setDeltaValue(key, v)}
-                      newVal={newSet[key]}
+                      newVal={key === 'weapon' ? (newSet[key] ?? 0) - MYSTIC_WEAPON_FIXED : newSet[key]}
                       readOnlyOld={key === 'mainFixed'}
                       disableDelta={key === 'stat' || key === 'weapon' || key === 'skillAtk'}
                       deltaPlaceholder="Auto"

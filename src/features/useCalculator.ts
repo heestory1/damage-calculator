@@ -7,7 +7,7 @@ import {
   calculateNewAtk,
   predictNewStatDamage
 } from '@/domain/calculator';
-import { EFFICIENCY_DEFAULTS } from '@/domain/constants';
+import { EFFICIENCY_DEFAULTS, MYSTIC_WEAPON_FIXED } from '@/domain/constants';
 
 export function useCalculator() {
   const [oldState, setOldState] = useState<StatSet>({});
@@ -30,6 +30,8 @@ export function useCalculator() {
     if (s.stat !== undefined && s.mainPct !== undefined) {
       s.mainFixed = estimateMainFixed(s.stat, s.mainPct);
     }
+    // Apply Fixed Mystic Weapon Effect
+    s.weapon = (s.weapon ?? 0) + MYSTIC_WEAPON_FIXED;
     return s;
   }, [oldState]);
 
@@ -104,6 +106,7 @@ export function useCalculator() {
   }, []);
 
   return {
+    rawOld: oldState,
     old, setOldValue,
     delta: deltaState, setDeltaValue,
     newSet,

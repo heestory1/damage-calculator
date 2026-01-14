@@ -2,7 +2,7 @@ import { StatKey } from './types';
 
 export const STAT_LABELS: Record<StatKey, string> = {
   atk: "상태창 공격력",
-  weapon: "무기 효과 (%)",
+  weapon: "무기 (Ancient)",
   skillAtk: "스킬 공격력 (%)",
   cr: "크리티컬 확률",
   cd: "크리티컬 데미지",
@@ -22,7 +22,7 @@ export const STAT_LABELS: Record<StatKey, string> = {
 
 export const STAT_DESCRIPTIONS: Partial<Record<StatKey, string>> = {
   atk: "마을 기준 수치를 입력하세요. (무기 착용 포함 / 스킬 제외)",
-  weapon: "무기 장착 및 보유효과 합산값을 입력하세요.",
+  weapon: "에인션트 등급 이상 효과만 입력 (미스틱 풀강 8573.3% 자동적용)",
   skillAtk: "스킬/버프로 인한 증가분을 모두 합산한 값입니다.",
   cr: "크확 100% 초과분도 모두 그대로 입력합니다.",
   as: "기본기술 비중(p)만큼만 최종 DPS에 반영됩니다.",
@@ -52,6 +52,8 @@ export const EFFICIENCY_DEFAULTS: Partial<Record<string, number>> = {
   mainFixedEff: 600, 
   mainPctEff: 12     
 };
+
+export const MYSTIC_WEAPON_FIXED = 8573.3;
 
 export const STAT_ORDER: StatKey[] = [
   'atk', 'weapon', 'skillAtk', 'cr', 'cd', 'as', 'stat',

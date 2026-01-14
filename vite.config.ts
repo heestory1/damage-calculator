@@ -5,7 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/damage-calculator/', // For GitHub Pages
+  base: '/', // Changed from '/damage-calculator/' for custom domain torifun.co.kr
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

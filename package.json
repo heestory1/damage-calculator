@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://heestory1.github.io/damage-calculator/",
+  "homepage": "http://torifun.co.kr",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
