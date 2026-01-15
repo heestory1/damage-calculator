@@ -22,7 +22,7 @@ export const STAT_LABELS: Record<StatKey, string> = {
 
 export const STAT_DESCRIPTIONS: Partial<Record<StatKey, string>> = {
   atk: "마을 기준 수치를 입력하세요. (무기 착용 포함 / 스킬 제외)",
-  weapon: "에인션트 등급 이상 효과만 입력 (미스틱 풀강 8573.3% 자동적용)",
+  weapon: "에인션트 등급 이상의 보유 및 장착 효과만 입력 (미스틱 풀강 8573.3% 자동적용)",
   skillAtk: "스킬/버프로 인한 증가분을 모두 합산한 값입니다.",
   cr: "크확 100% 초과분도 모두 그대로 입력합니다.",
   as: "기본기술 비중(p)만큼만 최종 DPS에 반영됩니다.",
