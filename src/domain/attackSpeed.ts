@@ -5,7 +5,7 @@
  * (가정: 기본 공격 30프레임, 60fps 기준)
  */
 
-const BASE_ATTACK_FRAME = 30; // 확실하지 않음 (가정)
+const BASE_ATTACK_FRAME = 62; // 확실하지 않음 (가정)
 const FPS = 60;              // 확실하지 않음 (가정)
 
 /**
