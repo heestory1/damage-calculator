@@ -6,7 +6,6 @@ export const STAT_LABELS: Record<StatKey, string> = {
   skillAtk: "스킬 공격력 (%)",
   cr: "크리티컬 확률",
   cd: "크리티컬 데미지",
-  as: "공격 속도 (%)",
   stat: "스탯비례 데미지",
   mainFixed: "고정 주스탯",
   mainPct: "주스탯 (%)",
@@ -25,7 +24,6 @@ export const STAT_DESCRIPTIONS: Partial<Record<StatKey, string>> = {
   weapon: "에인션트 등급 이상의 보유 및 장착 효과만 입력 (미스틱 풀강 8573.3% 자동적용)",
   skillAtk: "스킬/버프로 인한 증가분을 모두 합산한 값입니다.",
   cr: "크확 100% 초과분도 모두 그대로 입력합니다.",
-  as: "기본기술 비중(p)만큼만 최종 DPS에 반영됩니다.",
   stat: "현재 인게임 스탯비례 데미지 수치입니다. (필수)",
   mainFixed: "입력된 값을 기반으로 자동 추정된 고정 주스탯입니다.",
   mainPct: "현재 캐릭터의 주스탯% 합산 수치입니다.",
@@ -38,7 +36,6 @@ export const STAT_DESCRIPTIONS: Partial<Record<StatKey, string>> = {
 export const EFFICIENCY_DEFAULTS: Partial<Record<string, number>> = {
   atk: 5000,
   cr: 12,
-  as: 7,
   dmg: 25,
   boss: 15,
   min: 15,
