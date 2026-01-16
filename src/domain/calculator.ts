@@ -1,5 +1,4 @@
-import { calcAttackFrame, calcHitsPerSecond } from './attackSpeed';
-
+import { calcAttackFrame, calcHitsPer15Sec } from './attackSpeed';
 import { StatSet } from './types';
 
 export function clamp(x: number, min: number, max: number) {
@@ -34,20 +33,18 @@ export function predictNewStatDamage(fixedNew: number, newMainPct: number): numb
 }
 
 /**
- * 4. 공격속도 DPS 배율 (원본 Sclamped 1.5 상한 및 totalSpeedFactor 준수)
+ * 4. 공격속도 DPS 배율 (프레임 기반, 15초 타수 기준)
+ * ⚠️ 연속 배율 폐기, 계단식 타수만 반영
  */
-export function computeAttackSpeedMultiplier(S: number, d: number, p: number): number {
-  const cap = 1.5;
-  const pp = clamp(p / 100.0, 0, 1);
-  const Sclamped = clamp(S / 100.0, 0, cap);
-  const deff = (d / 100.0) * (cap - Sclamped) / cap;
-  
-  const before = 1 + Sclamped;
-  const after = 1 + (Sclamped + deff);
-  
-  if (before <= 0) return 1;
-  const ms = after / before;
-  return 1 + pp * (ms - 1);
+export function computeAttackSpeedMultiplier(
+  atkSpeedPercent: number,
+  baseHitsPer15Sec: number
+): number {
+  const frame = calcAttackFrame(atkSpeedPercent);
+  const hits = calcHitsPer15Sec(frame);
+
+  if (baseHitsPer15Sec <= 0) return 1;
+  return hits / baseHitsPer15Sec;
 }
 
 /**
@@ -61,7 +58,7 @@ export function computeFinalDamage(s: StatSet, pPercent: number): number {
   const skillAtk = s.skillAtk ?? 0;
   const mainFixed = s.mainFixed ?? 0;
 
-  // 원본: 주스탯 1당 공격력 1 보정
+  // 주스탯 1당 공격력 1 보정
   const atkEffective = atkBase + mainFixed;
   const atkTerm = atkEffective * (1 + skillAtk / 100.0);
 
@@ -70,9 +67,9 @@ export function computeFinalDamage(s: StatSet, pPercent: number): number {
   const critMult = (cr * cdMult + (1 - cr));
 
   const avg = ((s.min ?? 0) + (s.max ?? 0)) / 200.0;
-  
-  // 공통 계수 곱
-  const common = atkTerm *
+
+  const common =
+    atkTerm *
     (1 + (s.dmg ?? 0) / 100.0) *
     (1 + (s.stat ?? 0) / 100.0) *
     (1 + (s.amp ?? 0) / 100.0) *
@@ -81,14 +78,17 @@ export function computeFinalDamage(s: StatSet, pPercent: number): number {
     critMult *
     (1 + (s.final ?? 0) / 100.0);
 
-  // 기본기 vs 스킬 비중 반영
   const basicPart = common * (1 + (s.basic ?? 0) / 100.0);
   const skillPart = common * (1 + (s.skill ?? 0) / 100.0);
 
   return p * basicPart + q * skillPart;
 }
-export function __debugAttackSpeed(atkSpeed: number) {
-  const frame = calcAttackFrame(atkSpeed);
-  const hps = calcHitsPerSecond(frame);
-  return { frame, hps };
+
+/**
+ * 디버그용: 공격속도 → 프레임 / 15초 타수 확인
+ */
+export function __debugAttackSpeed(atkSpeedPercent: number) {
+  const frame = calcAttackFrame(atkSpeedPercent);
+  const hits15 = calcHitsPer15Sec(frame);
+  return { frame, hits15 };
 }
