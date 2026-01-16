@@ -149,33 +149,6 @@ export const Calculator = () => {
                     />
                     
                     {/* Specialized AS/Weight UI */}
-                    {key === 'as' && (
-                      <div className="flex justify-end sm:pr-[165px] -mt-1.5 mb-2.5 relative z-10 scale-90 sm:scale-100 origin-right">
-                        <div className="bg-indigo-600 px-3 py-1.5 rounded-b-xl flex items-center gap-3 shadow-xl shadow-indigo-500/20">
-                          <div className="flex items-center gap-1.5 border-r border-white/20 pr-3">
-                            <Layers className="w-3 h-3 text-indigo-200" />
-                            <span className="text-[9px] font-black text-white uppercase tracking-tighter">p-Weight</span>
-                          </div>
-                          <div className="flex gap-1">
-                            {[30, 50, 70].map(v => (
-                              <button 
-                                key={v} onClick={() => setPCustom(v)}
-                                className={cn(
-                                  "w-6 h-4.5 flex items-center justify-center text-[9px] font-black rounded-md transition-all", 
-                                  pCustom === v ? "bg-white text-indigo-600 shadow-inner" : "text-white/40 hover:text-white"
-                                )}
-                              >{v}</button>
-                            ))}
-                          </div>
-                          <input 
-                            type="number" 
-                            value={pCustom} 
-                            onChange={e => setPCustom(parseFloat(e.target.value))}
-                            className="w-9 bg-indigo-700/50 border-none text-[10px] font-black text-white text-center rounded-lg focus:ring-0 outline-none h-4.5"
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
