@@ -56,7 +56,7 @@ export const EFFICIENCY_DEFAULTS: Partial<Record<string, number>> = {
 export const MYSTIC_WEAPON_FIXED = 8573.3;
 
 export const STAT_ORDER: StatKey[] = [
-  'atk', 'weapon', 'skillAtk', 'cr', 'cd', 'as', 'stat',
+  'atk', 'weapon', 'skillAtk', 'cr', 'cd', 'stat',
   'mainFixed', 'mainPct', 'dmg', 'amp', 'basic', 'skill',
   'boss', 'min', 'max', 'final'
 ];
