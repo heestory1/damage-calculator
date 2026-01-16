@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { StepSet, StatKey, StatSet } from '@/domain/types';
-import { computeFinalDamage, computeAttackSpeedMultiplier } from '@/domain/calculator';
+import { computeFinalDamage } from '@/domain/calculator';
 import { Card } from '@/ui/components/base';
 import { STAT_LABELS } from '@/domain/constants';
 import { TrendingUp, Edit3 } from 'lucide-react';
@@ -25,30 +25,35 @@ export const Efficiency = ({ newSet, steps, onStepChange, pCustom, isPremium }: 
     if (baseDmg <= 0) return [];
 
     const list: { label: string, norm: number, raw: number, step: number, key: string }[] = [];
-    const effKeys: StatKey[] = ['atk', 'cr', 'cd', 'as', 'dmg', 'boss', 'min', 'max', 'amp', 'final', 'skill', 'basic']; 
+    const effKeys: StatKey[] = [
+  'atk', 'cr', 'cd',
+  // 'as', ❌ 삭제
+  'dmg', 'boss', 'min', 'max', 'amp', 'final', 'skill', 'basic'
+];
+
     
     effKeys.forEach(k => {
-      const step = steps[k as keyof StepSet] ?? 1;
-      if (step <= 0) return;
-      
-      let gain = 0;
-      let norm = 0;
+  const step = steps[k as keyof StepSet] ?? 1;
+  if (step <= 0) return;
 
-      if (k === 'as') {
-        const factor = computeAttackSpeedMultiplier((base.as || 0), step, pCustom);
-        gain = (factor - 1) * 100;
-        norm = gain / step;
-      } else {
-        const testSet = { ...base };
-        if (k === 'atk') testSet.atk = (testSet.atk || 0) + step;
-        else testSet[k] = (testSet[k] || 0) + step;
-        
-        const newD = computeFinalDamage(testSet, pCustom);
-        gain = (newD / baseDmg - 1) * 100;
-        norm = k === 'atk' ? gain / (step / 1000.0) : gain / step;
-      }
-      list.push({ label: STAT_LABELS[k], norm, raw: gain, step, key: k });
-    });
+  const testSet = { ...base };
+  if (k === 'atk') testSet.atk = (testSet.atk || 0) + step;
+  else testSet[k] = (testSet[k] || 0) + step;
+
+  const newD = computeFinalDamage(testSet, pCustom);
+  const gain = (newD / baseDmg - 1) * 100;
+  const norm = k === 'atk'
+    ? gain / (step / 1000.0)
+    : gain / step;
+
+  list.push({
+    label: STAT_LABELS[k],
+    norm,
+    raw: gain,
+    step,
+    key: k
+  });
+});
 
     // Virtual: 주스탯%
     const stepPct = steps['mainPctEff'] ?? 12;
