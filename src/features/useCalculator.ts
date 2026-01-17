@@ -118,6 +118,16 @@ export function useCalculator() {
     if (data.effSteps) setEffSteps(data.effSteps);
   }, []);
 
+  const resetState = useCallback(() => {
+    setOldState({});
+    setDeltaState({});
+    setPCustom(50);
+    setEffSteps(EFFICIENCY_DEFAULTS as StepSet);
+    // Clear local storage if needed, but the parent component usually handles persistence.
+    // Ideally, clear the storage key 'torifun-calc-v1'
+    localStorage.removeItem('torifun-calc-v1');
+  }, []);
+
   return {
     rawOld: oldState,
     old, setOldValue,
@@ -126,6 +136,7 @@ export function useCalculator() {
     pCustom, setPCustom,
     effSteps, setEffSteps,
     results,
-    loadState
+    loadState,
+    resetState
   };
 }

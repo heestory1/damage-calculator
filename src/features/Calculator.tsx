@@ -42,7 +42,8 @@ export const Calculator = () => {
     pCustom, 
     effSteps, setEffSteps,
     results,
-    loadState
+    loadState,
+    resetState
   } = useCalculator();
 
   return (
@@ -117,10 +118,11 @@ export const Calculator = () => {
                   </div>
                 </div>
                 <button 
-                  onClick={() => window.location.reload()} 
-                  className="p-2 text-slate-300 hover:text-rose-500 transition-colors bg-slate-50 rounded-lg"
+                  onClick={resetState} 
+                  className="p-2 text-slate-300 hover:text-rose-500 transition-colors bg-slate-50 rounded-lg group"
+                  title="모든 값 초기화"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-4 h-4 group-hover:-rotate-180 transition-transform duration-500" />
                 </button>
               </div>
 
@@ -251,9 +253,10 @@ export const Calculator = () => {
                             <div className="flex items-center gap-2">
                                <input 
                                   type="number" 
-                                  value={old.as || 0}
+                                  value={old.as || ''}
                                   onChange={(e) => setOldValue('as', parseFloat(e.target.value))}
-                                  className="bg-slate-950/50 border border-white/10 text-white text-xl font-black w-24 px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all tabular-nums text-center shadow-inner"
+                                  onFocus={(e) => e.target.select()}
+                                  className="bg-slate-950/50 border border-white/10 text-white text-xl font-black w-24 px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all tabular-nums text-center shadow-inner placeholder:text-slate-700"
                                   placeholder="0"
                                />
                                <div className="flex flex-col">
@@ -281,12 +284,6 @@ export const Calculator = () => {
                              </span>
                           </div>
                           <div className="h-3 bg-slate-900/80 rounded-full overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] border border-white/5 relative">
-                             {/* Background Markers (Optional) */}
-                             <div className="absolute inset-0 flex">
-                                <div className="w-[33%] border-r border-white/5 h-full"></div>
-                                <div className="w-[33%] border-r border-white/5 h-full"></div>
-                             </div>
-                             
                              {/* Fill Bar */}
                              <motion.div 
                                 initial={{ width: 0 }}
@@ -320,6 +317,26 @@ export const Calculator = () => {
                                 </span>
                              </div>
                           </div>
+                       </div>
+                       
+                       {/* System Guide */}
+                       <div className="relative z-10 border-t border-white/5 pt-3 mt-1">
+                          <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">공격 속도 시스템 가이드</div>
+                          <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
+                            게임 내 공격 속도는 <span className="text-indigo-400">계단식</span>으로 적용됩니다. 
+                            특정 수치(예: 50%, 66.7%)에 도달하지 못하면 <span className="text-rose-400">중간 값은 버려집니다.</span>
+                            위 그래프를 통해 다음 단계로 넘어가기 위해 필요한 정확한 수치를 확인하세요.
+                          </p>
+                       </div>
+                       
+                       {/* System Guide */}
+                       <div className="relative z-10 border-t border-white/5 pt-3 mt-1">
+                          <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">공격 속도 시스템 가이드</div>
+                          <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
+                            게임 내 공격 속도는 <span className="text-indigo-400">계단식</span>으로 적용됩니다. 
+                            특정 수치(예: 50%, 66.7%)에 도달하지 못하면 <span className="text-rose-400">중간 값은 버려집니다.</span>
+                            위 그래프를 통해 다음 단계로 넘어가기 위해 필요한 정확한 수치를 확인하세요.
+                          </p>
                        </div>
                     </div>
                   </div>
