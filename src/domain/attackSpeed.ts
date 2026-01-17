@@ -31,7 +31,7 @@ export function calcAttackFrame(atkSpeedPercent: number): number {
       return tier.frame;
     }
   }
-  return 30; // Fallback
+  return BASE_ATTACK_FRAME; // Fallback
 }
 
 /**
