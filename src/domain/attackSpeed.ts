@@ -43,3 +43,36 @@ export function calcHitsFromAtkSpeed(atkSpeedPercent: number): number {
   const frame = calcAttackFrame(atkSpeedPercent);
   return calcHitsPer15Sec(frame);
 }
+
+/**
+ * 공격속도 관련 분석 정보 반환
+ */
+export function getAttackSpeedBreakpoints(currentAS: number) {
+  const currentFrame = calcAttackFrame(currentAS);
+  
+  // 현재 프레임을 유지하는 최소 공속 (Min AS for Current Frame)
+  // Frame <= 34 / (1 + as)  -> 1+as <= 34/Frame -> as <= 34/Frame - 1
+  // 이 식은 '상한선'이므로, 하한선은 'Frame+1'이 되는 공속보다 커야 함.
+  // 즉, Next Slower Frame (current+1) 컷보다 커야 함.
+  // Slower Frame Cut: as > 34/(current+1) - 1
+  const minASForCurrent = Math.max(0, (34 / (currentFrame + 1) - 1) * 100);
+
+  // 다음 프레임(더 빠른) 도달 컷
+  // Next Frame = currentFrame - 1
+  // Target AS > 34 / currentFrame - 1
+  const nextFrame = Math.max(1, currentFrame - 1);
+  const reqASForNext = (34 / currentFrame - 1) * 100;
+  
+  // 정확히 컷에 걸리면 프레임이 안 변하므로(floor), 표기용으로는 0.01 정도 더해주는 게 안전하거나
+  // UI에서 "초과"로 명시. 계산상으로는 epsilon 더함.
+  const targetAS = reqASForNext; 
+
+  return {
+    currentFrame,
+    nextFrame,
+    currentAS,
+    reqASForNext: targetAS,
+    minASForCurrent, // 현재 프레임이 유지되는 바닥 공속
+    progress: (currentAS - minASForCurrent) / (targetAS - minASForCurrent) // 현재 구간 내 진행률 (0~1)
+  };
+}

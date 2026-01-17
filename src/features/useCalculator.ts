@@ -6,7 +6,7 @@ import {
   calculateNewAtk,
   predictNewStatDamage
 } from '@/domain/calculator';
-import { calcAttackFrame, calcHitsPer15Sec } from '@/domain/attackSpeed';
+import { calcAttackFrame, calcHitsPer15Sec, getAttackSpeedBreakpoints } from '@/domain/attackSpeed';
 import { EFFICIENCY_DEFAULTS, MYSTIC_WEAPON_FIXED } from '@/domain/constants';
 
 export function useCalculator() {
@@ -74,6 +74,7 @@ export function useCalculator() {
     const newHits = calcHitsPer15Sec(newFrame);
 
     const asGain = baseHits > 0 ? (newHits / baseHits - 1) : 0;
+    const asBreakdown = getAttackSpeedBreakpoints(newAS);
 
     // Boosted Projection
     const boostedSet = { ...newSet };
@@ -98,6 +99,7 @@ export function useCalculator() {
 
       // 공격속도 정보
       asGain,
+      asBreakdown,
       asDetail: {
         baseAS,
         newAS,

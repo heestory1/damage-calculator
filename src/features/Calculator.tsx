@@ -225,31 +225,102 @@ export const Calculator = () => {
                     <p className="text-[9px] text-amber-500/60 font-bold mt-1 uppercase tracking-tighter">효율 기준 수치 적용 시 예상 데미지</p>
                   </div>
 
-                  {/* AS Integrated Info */}
+                  {/* AS Integrated Info - Interactive & Visual */}
                   <div className="pt-6 border-t border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <div className="text-slate-400 text-[10px] font-black uppercase mb-1 flex items-center gap-1.5 leading-none">
-                          공속 효율 <Info className="w-3 h-3 opacity-30 text-indigo-400" />
-                        </div>
-                        <div className="text-[9px] text-slate-500 font-bold uppercase tracking-tight">비중 p={pCustom}% 기준</div>
-                      </div>
-                      <div className={cn(
-                        "text-3xl font-black tracking-tight tabular-nums",
-                        results.asGain > 0 ? "text-rose-500" : (results.asGain < 0 ? "text-indigo-400" : "text-slate-400")
-                      )}>
-                        {results.asGain > 0 ? "+" : ""}{(results.asGain * 100).toFixed(3)}%
-                      </div>
+                    <div className="flex items-center justify-between mb-3">
+                       <div className="text-indigo-400 text-[11px] font-black uppercase flex items-center gap-1.5 leading-none tracking-wider">
+                          <Layers className="w-3 h-3" />
+                          공격 속도 최적화
+                       </div>
+                       <div className="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tight">
+                          Frame Optimization
+                       </div>
                     </div>
-                    
-                    {/* Scenario Previews */}
-                    <div className="flex justify-between gap-2">
-                       {results.asScenarios.map(sc => (
-                         <div key={sc.p} className="flex-1 bg-white/5 rounded-lg py-2 px-1 text-center border border-white/[0.02]">
-                            <div className="text-[8px] font-black text-slate-500 uppercase leading-none mb-1">p={sc.p}</div>
-                            <div className="text-[10px] font-bold text-slate-300">{(sc.gain * 100).toFixed(2)}%</div>
-                         </div>
-                       ))}
+
+                    <div className="bg-white/[0.03] rounded-2xl p-5 border border-white/5 space-y-5 relative overflow-hidden group/as">
+                       <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/as:opacity-20 transition-opacity">
+                          <RotateCcw className="w-12 h-12 text-indigo-500" />
+                       </div>
+
+                       {/* Input & Current Status */}
+                       <div className="relative z-10 flex items-end justify-between gap-4">
+                          <div className="flex-1">
+                            <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 block">
+                               내 캐릭터 공속 (%)
+                            </label>
+                            <div className="flex items-center gap-2">
+                               <input 
+                                  type="number" 
+                                  value={old.as || 0}
+                                  onChange={(e) => setOldValue('as', parseFloat(e.target.value))}
+                                  className="bg-slate-950/50 border border-white/10 text-white text-xl font-black w-24 px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all tabular-nums text-center shadow-inner"
+                                  placeholder="0"
+                               />
+                               <div className="flex flex-col">
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase">현재 적용</span>
+                                  <span className="text-lg font-black text-indigo-400 leading-none">
+                                     {results.asBreakdown.currentFrame}<span className="text-[10px] ml-0.5">프레임</span>
+                                  </span>
+                               </div>
+                            </div>
+                          </div>
+                       </div>
+
+                       {/* Visual Progress Bar */}
+                       <div className="relative z-10">
+                          <div className="flex justify-between items-end mb-1.5">
+                             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">
+                                다음 단계 (<span className="text-slate-300">{results.asBreakdown.nextFrame}프레임</span>) 까지
+                             </span>
+                             <span className="text-[10px] font-black text-rose-400 tabular-nums">
+                                {results.asBreakdown.reqASForNext > results.asBreakdown.currentAS ? (
+                                   <>+{ (results.asBreakdown.reqASForNext - results.asBreakdown.currentAS).toFixed(2) }% 필요</>
+                                ) : (
+                                   <span className="text-emerald-400">최적화 완료!</span>
+                                )}
+                             </span>
+                          </div>
+                          <div className="h-3 bg-slate-900/80 rounded-full overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] border border-white/5 relative">
+                             {/* Background Markers (Optional) */}
+                             <div className="absolute inset-0 flex">
+                                <div className="w-[33%] border-r border-white/5 h-full"></div>
+                                <div className="w-[33%] border-r border-white/5 h-full"></div>
+                             </div>
+                             
+                             {/* Fill Bar */}
+                             <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(100, Math.max(5, results.asBreakdown.progress * 100))}%` }}
+                                transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                                className="h-full bg-gradient-to-r from-indigo-600 via-violet-500 to-rose-500 relative"
+                             >
+                                <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50 shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
+                             </motion.div>
+                          </div>
+                          <div className="flex justify-between text-[8px] font-bold text-slate-600 mt-1 uppercase tracking-wider">
+                             <span>유지 최소컷 {Math.ceil(results.asBreakdown.minASForCurrent)}%</span>
+                             <span>목표 {Math.ceil(results.asBreakdown.reqASForNext)}%</span>
+                          </div>
+                       </div>
+
+                       {/* Efficiency Insight */}
+                       <div className="relative z-10 bg-indigo-500/10 rounded-lg p-3 border border-indigo-500/20 flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
+                             <TrendingUp className="w-4 h-4 text-indigo-300" />
+                          </div>
+                          <div>
+                             <div className="text-[9px] text-indigo-300 font-bold uppercase tracking-tight mb-0.5">
+                                성장을 위한 팁
+                             </div>
+                             <div className="text-xs font-medium text-slate-300 leading-tight">
+                                공속이 빨라지면 같은 시간 동안 <span className="text-white font-bold underline decoration-indigo-500 decoration-2 underline-offset-2">초당 타수</span>가 증가합니다.
+                                <br/>
+                                <span className="text-[10px] text-indigo-400 mt-1 block font-black">
+                                   다음 단계 도달 시 공격 횟수 약 {((34/results.asBreakdown.nextFrame)/(34/results.asBreakdown.currentFrame) * 100 - 100).toFixed(1)}% 증가
+                                </span>
+                             </div>
+                          </div>
+                       </div>
                     </div>
                   </div>
                 </div>
