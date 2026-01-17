@@ -17,9 +17,9 @@ import {
   User, 
   BarChart3, 
   Calculator as CalcIcon,
-  Info,
   Layers,
-  ArrowRight
+  ArrowRight,
+  TrendingUp
 } from 'lucide-react';
 
 export const Calculator = () => {
@@ -39,7 +39,7 @@ export const Calculator = () => {
     old, setOldValue, 
     delta, setDeltaValue, 
     newSet, 
-    pCustom, setPCustom, 
+    pCustom, 
     effSteps, setEffSteps,
     results,
     loadState

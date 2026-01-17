@@ -16,7 +16,8 @@ export const STAT_LABELS: Record<StatKey, string> = {
   boss: "보스/일반 데미지",
   min: "최소 데미지",
   max: "최대 데미지",
-  final: "최종 데미지"
+  final: "최종 데미지",
+  as: "공격 속도"
 };
 
 export const STAT_DESCRIPTIONS: Partial<Record<StatKey, string>> = {
