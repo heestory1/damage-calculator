@@ -240,9 +240,13 @@ export const Calculator = () => {
                     </div>
 
                     <div className="bg-white/[0.03] rounded-2xl p-5 border border-white/5 space-y-5 relative overflow-hidden group/as">
-                       <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/as:opacity-20 transition-opacity">
-                          <RotateCcw className="w-12 h-12 text-indigo-500" />
-                       </div>
+                       <button 
+                          onClick={() => setOldValue('as', 0)}
+                          className="absolute top-0 right-0 p-3 opacity-20 hover:opacity-100 transition-all duration-300 cursor-pointer z-20 group/reset"
+                          title="공속 수치 초기화"
+                       >
+                          <RotateCcw className="w-5 h-5 text-indigo-500 group-hover/reset:-rotate-180 transition-transform duration-500" />
+                       </button>
 
                        {/* Input & Current Status */}
                        <div className="relative z-10 flex items-end justify-between gap-4">
@@ -320,23 +324,25 @@ export const Calculator = () => {
                        </div>
                        
                        {/* System Guide */}
-                       <div className="relative z-10 border-t border-white/5 pt-3 mt-1">
-                          <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">공격 속도 시스템 가이드</div>
-                          <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
-                            게임 내 공격 속도는 <span className="text-indigo-400">계단식</span>으로 적용됩니다. 
-                            특정 수치(예: 50%, 66.7%)에 도달하지 못하면 <span className="text-rose-400">중간 값은 버려집니다.</span>
-                            위 그래프를 통해 다음 단계로 넘어가기 위해 필요한 정확한 수치를 확인하세요.
+                       <div className="relative z-10 border-t border-white/5 pt-4 mt-2">
+                          <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+                             <span>공격 속도 시스템 가이드</span>
+                             <span className="text-[9px] text-slate-600 bg-slate-800 px-1.5 py-0.5 rounded">Formula</span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 leading-relaxed font-medium mb-3">
+                            게임 내 공격 속도는 <span className="text-indigo-400 font-bold">계단식</span>으로 적용됩니다. 
+                            주요 구간<span className="text-slate-500 font-normal">(50%, 66.7%, 100% 등)</span>에 도달하지 못하면 
+                            <span className="text-rose-400 font-bold"> 중간 값은 버려집니다.</span>
                           </p>
-                       </div>
-                       
-                       {/* System Guide */}
-                       <div className="relative z-10 border-t border-white/5 pt-3 mt-1">
-                          <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">공격 속도 시스템 가이드</div>
-                          <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
-                            게임 내 공격 속도는 <span className="text-indigo-400">계단식</span>으로 적용됩니다. 
-                            특정 수치(예: 50%, 66.7%)에 도달하지 못하면 <span className="text-rose-400">중간 값은 버려집니다.</span>
-                            위 그래프를 통해 다음 단계로 넘어가기 위해 필요한 정확한 수치를 확인하세요.
-                          </p>
+                          <div className="bg-slate-950/50 rounded-lg p-2.5 border border-white/5 font-mono text-[10px] text-slate-500 flex flex-col gap-1">
+                             <div className="flex justify-between">
+                                <span>적용 프레임(F) = </span>
+                                <span className="text-indigo-400">FLOOR( 34 / (1 + 공속%) )</span>
+                             </div>
+                             <div className="text-[9px] text-slate-600 mt-0.5 text-right">
+                                * FLOOR: 소수점 버림 (내림)
+                             </div>
+                          </div>
                        </div>
                     </div>
                   </div>
