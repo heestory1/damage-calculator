@@ -277,13 +277,23 @@ export const Calculator = () => {
                        <div className="relative z-10">
                           <div className="flex justify-between items-end mb-1.5">
                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">
-                                다음 단계 (<span className="text-slate-300">{results.asBreakdown.nextFrame}프레임</span>) 까지
+                                {results.asBreakdown.isMax ? (
+                                   <span className="text-emerald-400">최고 효율 구간 도달</span>
+                                ) : (
+                                   <>
+                                      다음 티어 (<span className="text-slate-300">{results.asBreakdown.nextFrame}프레임</span>) 까지
+                                   </>
+                                )}
                              </span>
                              <span className="text-[10px] font-black text-rose-400 tabular-nums">
-                                {results.asBreakdown.reqASForNext > results.asBreakdown.currentAS ? (
-                                   <>+{ (results.asBreakdown.reqASForNext - results.asBreakdown.currentAS).toFixed(2) }% 필요</>
+                                {results.asBreakdown.isMax ? (
+                                   <span className="text-emerald-400">MAX</span>
                                 ) : (
-                                   <span className="text-emerald-400">최적화 완료!</span>
+                                   results.asBreakdown.reqASForNext > results.asBreakdown.currentAS ? (
+                                      <>+{ (results.asBreakdown.reqASForNext - results.asBreakdown.currentAS).toFixed(1) }% 필요</>
+                                   ) : (
+                                      <span className="text-emerald-400">조건 충족!</span>
+                                   )
                                 )}
                              </span>
                           </div>
@@ -293,14 +303,19 @@ export const Calculator = () => {
                                 initial={{ width: 0 }}
                                 animate={{ width: `${Math.min(100, Math.max(5, results.asBreakdown.progress * 100))}%` }}
                                 transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-                                className="h-full bg-gradient-to-r from-indigo-600 via-violet-500 to-rose-500 relative"
+                                className={cn(
+                                   "h-full relative",
+                                   results.asBreakdown.isMax 
+                                      ? "bg-gradient-to-r from-emerald-600 to-teal-400" 
+                                      : "bg-gradient-to-r from-indigo-600 via-violet-500 to-rose-500"
+                                )}
                              >
                                 <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-white/50 shadow-[0_0_5px_rgba(255,255,255,0.5)]"></div>
                              </motion.div>
                           </div>
                           <div className="flex justify-between text-[8px] font-bold text-slate-600 mt-1 uppercase tracking-wider">
-                             <span>유지 최소컷 {Math.ceil(results.asBreakdown.minASForCurrent)}%</span>
-                             <span>목표 {Math.ceil(results.asBreakdown.reqASForNext)}%</span>
+                             <span>현재 구간 {results.asBreakdown.minASForCurrent}%</span>
+                             <span>{results.asBreakdown.isMax ? 'MAX' : `목표 ${results.asBreakdown.reqASForNext}%`}</span>
                           </div>
                        </div>
 
@@ -317,7 +332,10 @@ export const Calculator = () => {
                                 공속이 빨라지면 같은 시간 동안 <span className="text-white font-bold underline decoration-indigo-500 decoration-2 underline-offset-2">초당 타수</span>가 증가합니다.
                                 <br/>
                                 <span className="text-[10px] text-indigo-400 mt-1 block font-black">
-                                   다음 단계 도달 시 공격 횟수 약 {((34/results.asBreakdown.nextFrame)/(34/results.asBreakdown.currentFrame) * 100 - 100).toFixed(1)}% 증가
+                                   {results.asBreakdown.isMax 
+                                      ? "현재 최대 효율 상태입니다." 
+                                      : `다음 티어 도달 시 공격 횟수 약 ${((30/results.asBreakdown.nextFrame)/(30/results.asBreakdown.currentFrame) * 100 - 100).toFixed(1)}% 증가`
+                                   }
                                 </span>
                              </div>
                           </div>
@@ -327,20 +345,28 @@ export const Calculator = () => {
                        <div className="relative z-10 border-t border-white/5 pt-4 mt-2">
                           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center justify-between">
                              <span>공격 속도 시스템 가이드</span>
-                             <span className="text-[9px] text-slate-600 bg-slate-800 px-1.5 py-0.5 rounded">Formula</span>
+                             <span className="text-[9px] text-slate-600 bg-slate-800 px-1.5 py-0.5 rounded">Tier System</span>
                           </div>
                           <p className="text-[11px] text-slate-400 leading-relaxed font-medium mb-3">
-                            게임 내 공격 속도는 <span className="text-indigo-400 font-bold">계단식</span>으로 적용됩니다. 
-                            주요 구간<span className="text-slate-500 font-normal">(50%, 66.7%, 100% 등)</span>에 도달하지 못하면 
-                            <span className="text-rose-400 font-bold"> 중간 값은 버려집니다.</span>
+                            공격 속도는 특정 구간(Tier)에 도달해야만 효과가 적용됩니다. 
+                            중간 수치는 <span className="text-rose-400 font-bold">이전 단계와 동일</span>하게 처리됩니다.
                           </p>
-                          <div className="bg-slate-950/50 rounded-lg p-2.5 border border-white/5 font-mono text-[10px] text-slate-500 flex flex-col gap-1">
-                             <div className="flex justify-between">
-                                <span>적용 프레임(F) = </span>
-                                <span className="text-indigo-400">FLOOR( 34 / (1 + 공속%) )</span>
+                          <div className="bg-slate-950/50 rounded-lg p-2.5 border border-white/5 font-mono text-[10px] text-slate-500 flex flex-col gap-1.5">
+                             <div className="flex justify-between border-b border-white/5 pb-1">
+                                <span className="text-slate-400">0% ~ 49.9%</span>
+                                <span className="text-indigo-400">30 프레임 (기본)</span>
                              </div>
-                             <div className="text-[9px] text-slate-600 mt-0.5 text-right">
-                                * FLOOR: 소수점 버림 (내림)
+                             <div className="flex justify-between border-b border-white/5 pb-1">
+                                <span className="text-slate-400">50% ~ 66.6%</span>
+                                <span className="text-indigo-400">20 프레임 (1.5배)</span>
+                             </div>
+                             <div className="flex justify-between border-b border-white/5 pb-1">
+                                <span className="text-slate-400">66.7% ~ 99.9%</span>
+                                <span className="text-indigo-400">18 프레임 (1.66배)</span>
+                             </div>
+                             <div className="flex justify-between">
+                                <span className="text-slate-400">100% 이상</span>
+                                <span className="text-rose-400 font-bold">15 프레임 (2.0배)</span>
                              </div>
                           </div>
                        </div>

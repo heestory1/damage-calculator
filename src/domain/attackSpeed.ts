@@ -4,30 +4,38 @@
  * 공격속도 → 실제 공격 프레임 및 타수 계산
  * 기준:
  * - 논리 FPS: 60
- * - 공격은 프레임 단위로 처리
- * - 타수는 계단식 증가 (floor)
- *
- * ⚠️ BASE_ATTACK_FRAME은 실측 기반 가정값
+ * - Base Frame: 30 (사용자 피드백 기반 30프레임 체계 적용)
+ * - Tier System: 50%, 66.7%, 100% 구간에서만 유의미한 변화 발생 가정
  */
 
-const FPS = 60;                  // 확실 (가정)
-const BASE_ATTACK_FRAME = 34;    // 실측 기반 가정 (100% 기준)
+const FPS = 60;
+const BASE_ATTACK_FRAME = 30; // 30프레임 기준 (기존 34에서 변경)
+
+// 정의된 공속 티어 (구간 시작 %, 적용 프레임)
+// 66.7%는 계산상 17.99.. -> 17이 될 수 있으나, 통상 18프레임(3/5)으로 간주하여 설정
+const AS_TIERS = [
+  { cut: 100, frame: 15 }, // 2.0배
+  { cut: 66.7, frame: 18 }, // 약 1.66배
+  { cut: 50, frame: 20 },  // 1.5배
+  { cut: 0, frame: 30 }    // 1.0배
+];
 
 /**
- * atkSpeedPercent: 공격속도 % (예: 66.7)
- * return: 공격 1회당 소모 프레임 (정수)
+ * atkSpeedPercent: 공격속도 %
+ * return: Tier에 따른 고정 프레임 반환
  */
 export function calcAttackFrame(atkSpeedPercent: number): number {
-  const speed = Math.max(0, atkSpeedPercent / 100);
-  const rawFrame = BASE_ATTACK_FRAME / (1 + speed);
-
-  // 프레임 기반 게임 → floor 처리
-  return Math.max(1, Math.floor(rawFrame));
+  // 높은 구간부터 체크하여 해당되면 반환
+  for (const tier of AS_TIERS) {
+    if (atkSpeedPercent >= tier.cut) {
+      return tier.frame;
+    }
+  }
+  return 30; // Fallback
 }
 
 /**
  * 공격 프레임 → 15초 동안의 공격 횟수
- * (타수는 항상 정수, 계단식)
  */
 export function calcHitsPer15Sec(frame: number): number {
   if (frame <= 0) return 0;
@@ -37,7 +45,6 @@ export function calcHitsPer15Sec(frame: number): number {
 
 /**
  * 공격속도 % → 15초 타수
- * (UI / 효율 계산용 헬퍼)
  */
 export function calcHitsFromAtkSpeed(atkSpeedPercent: number): number {
   const frame = calcAttackFrame(atkSpeedPercent);
@@ -45,34 +52,48 @@ export function calcHitsFromAtkSpeed(atkSpeedPercent: number): number {
 }
 
 /**
- * 공격속도 관련 분석 정보 반환
+ * 공격속도 관련 분석 정보 반환 (Tier 기반)
  */
 export function getAttackSpeedBreakpoints(currentAS: number) {
   const currentFrame = calcAttackFrame(currentAS);
   
-  // 현재 프레임을 유지하는 최소 공속 (Min AS for Current Frame)
-  // Frame <= 34 / (1 + as)  -> 1+as <= 34/Frame -> as <= 34/Frame - 1
-  // 이 식은 '상한선'이므로, 하한선은 'Frame+1'이 되는 공속보다 커야 함.
-  // 즉, Next Slower Frame (current+1) 컷보다 커야 함.
-  // Slower Frame Cut: as > 34/(current+1) - 1
-  const minASForCurrent = Math.max(0, (34 / (currentFrame + 1) - 1) * 100);
+  // 현재 구간 찾기
+  // AS_TIERS는 내림차순 정렬되어 있음
+  const currentTierIndex = AS_TIERS.findIndex(t => currentAS >= t.cut);
+  const currentTier = AS_TIERS[currentTierIndex] || AS_TIERS[AS_TIERS.length - 1]; // Fallback to 0%
 
-  // 다음 프레임(더 빠른) 도달 컷
-  // Next Frame = currentFrame - 1
-  // Target AS > 34 / currentFrame - 1
-  const nextFrame = Math.max(1, currentFrame - 1);
-  const reqASForNext = (34 / currentFrame - 1) * 100;
+  // 다음 목표 구간 찾기
+  // 현재가 최고 티어(0번 인덱스)라면 다음 목표 없음
+  const nextTierIndex = currentTierIndex - 1;
+  const hasNext = nextTierIndex >= 0;
   
-  // 정확히 컷에 걸리면 프레임이 안 변하므로(floor), 표기용으로는 0.01 정도 더해주는 게 안전하거나
-  // UI에서 "초과"로 명시. 계산상으로는 epsilon 더함.
-  const targetAS = reqASForNext; 
+  const nextTier = hasNext ? AS_TIERS[nextTierIndex] : currentTier;
+
+  // 다음 목표까지 남은 수치
+  const reqASForNext = hasNext ? nextTier.cut : currentTier.cut;
+  
+  // 현재 구간의 시작점 (Base)
+  const minASForCurrent = currentTier.cut;
+
+  // Progress 계산 (현재 구간 내 위치)
+  // 예: 현재 25% (0% ~ 50% 사이). Progress = (25 - 0) / (50 - 0) = 0.5
+  let progress = 0;
+  if (hasNext) {
+    const totalDist = nextTier.cut - minASForCurrent;
+    const currentDist = currentAS - minASForCurrent;
+    progress = totalDist > 0 ? currentDist / totalDist : 1;
+  } else {
+    progress = 1; // 최고 티어 도달
+  }
 
   return {
     currentFrame,
-    nextFrame,
+    nextFrame: hasNext ? nextTier.frame : currentFrame, // 다음 티어의 프레임
     currentAS,
-    reqASForNext: targetAS,
-    minASForCurrent, // 현재 프레임이 유지되는 바닥 공속
-    progress: (currentAS - minASForCurrent) / (targetAS - minASForCurrent) // 현재 구간 내 진행률 (0~1)
+    reqASForNext, // 다음 티어 컷
+    minASForCurrent, // 현재 티어 컷
+    progress,
+    isMax: !hasNext,
+    tierLabel: `${currentTier.cut}% 구간`
   };
 }
