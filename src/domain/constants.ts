@@ -21,11 +21,11 @@ export const STAT_LABELS: Record<StatKey, string> = {
 };
 
 export const STAT_DESCRIPTIONS: Partial<Record<StatKey, string>> = {
-  atk: "마을 기준 수치를 입력하세요. (무기 착용 포함 / 스킬 제외)",
-  weapon: "에인션트 등급 이상의 보유 및 장착 효과만 입력 (미스틱 풀강 8573.3% 자동적용)",
+  atk: "프리셋 설정 > 예상 능력치에 나와있는 공격력을 입력",
+  weapon: "공격력 정보를 눌렀을때 현재 보유 중인 능력치에 나와있는 % 수치 입력",
   skillAtk: "스킬/버프로 인한 증가분을 모두 합산한 값입니다.",
   cr: "크확 100% 초과분도 모두 그대로 입력합니다.",
-  stat: "현재 인게임 스탯비례 데미지 수치입니다. (필수)",
+  stat: "스탯 정보에 나와 있는 합산 능력치를 입력합니다",
   mainFixed: "입력된 값을 기반으로 자동 추정된 고정 주스탯입니다.",
   mainPct: "현재 캐릭터의 주스탯% 합산 수치입니다.",
   basic: "기본공격 데미지입니다. (p 비중 반영)",
