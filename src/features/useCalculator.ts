@@ -7,7 +7,7 @@ import {
   predictNewStatDamage
 } from '@/domain/calculator';
 import { calcAttackFrame, calcHitsPer15Sec, getAttackSpeedBreakpoints } from '@/domain/attackSpeed';
-import { EFFICIENCY_DEFAULTS, MYSTIC_WEAPON_FIXED } from '@/domain/constants';
+import { EFFICIENCY_DEFAULTS } from '@/domain/constants';
 
 export function useCalculator() {
   const [oldState, setOldState] = useState<StatSet>({});
