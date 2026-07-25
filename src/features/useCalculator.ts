@@ -24,15 +24,16 @@ export function useCalculator() {
     setDeltaState(prev => ({ ...prev, [k]: v }));
   }, []);
 
-  // 1. Derived 'Old' State
-  const old = useMemo(() => {
-    const s = { ...oldState };
-    if (s.stat !== undefined && s.mainPct !== undefined) {
-      s.mainFixed = estimateMainFixed(s.stat, s.mainPct);
-    }
-    s.weapon = (s.weapon ?? 0) + MYSTIC_WEAPON_FIXED;
-    return s;
-  }, [oldState]);
+// 1. Derived 'Old' State
+const old = useMemo(() => {
+  const s = { ...oldState };
+  if (s.stat !== undefined && s.mainPct !== undefined) {
+    s.mainFixed = estimateMainFixed(s.stat, s.mainPct);
+  }
+  // s.weapon = (s.weapon ?? 0) + MYSTIC_WEAPON_FIXED; // 👈 기존 코드 주석 처리 또는 삭제
+  s.weapon = s.weapon ?? 0; // 👈 입력받은 값 그대로 사용하도록 변경
+  return s;
+}, [oldState]);
 
   // 2. New State
   const newSet = useMemo(() => {
